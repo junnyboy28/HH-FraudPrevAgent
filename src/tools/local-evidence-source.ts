@@ -369,6 +369,15 @@ export class LocalEvidenceSource implements EvidenceSource {
     return this.casePack;
   }
 
+  /**
+   * Accounts this source actually holds transactions for. The UI's investigation
+   * form offers only these, so a request can never name an entity that is not in
+   * the dataset.
+   */
+  loadedAccountIds(): readonly string[] {
+    return [...this.cardsByAccount.keys()];
+  }
+
   async txnExists(txnId: string): Promise<boolean> {
     await this.load();
     return this.allTxnIds.has(txnId);

@@ -64,8 +64,16 @@ async function main(): Promise<void> {
     process.exitCode = 1;
     return;
   }
-  const files = readdirSync(CASES_DIR).filter((f) => f.endsWith('.json'));
-  console.log(`validating ${files.length} answer files against the dataset Answer Format\n`);
+  // LIVE-* files are ad-hoc investigations started from the UI, not submissions,
+  // so they are not held to the answer-file contract.
+  const all = readdirSync(CASES_DIR).filter((f) => f.endsWith('.json'));
+  const files = all.filter((f) => !f.startsWith('LIVE-'));
+  const adhoc = all.length - files.length;
+  console.log(
+    `validating ${files.length} answer files against the dataset Answer Format` +
+      (adhoc > 0 ? ` (ignoring ${adhoc} ad-hoc LIVE- case${adhoc === 1 ? '' : 's'})` : '') +
+      '\n',
+  );
 
   for (const id of expected) {
     if (!files.includes(`${id}.json`)) fail(id, 'answer file is missing');

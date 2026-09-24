@@ -1,8 +1,6 @@
 // Backend entrypoint (npm run dev).
-// Placeholder: starts the API server once the API phase of build_plan.md lands.
+//
+// Starts the HTTP API in src/api/server.ts, which holds the loaded evidence
+// source in memory and serves the case-view UI in ui/.
 
-async function main(): Promise<void> {
-  console.log('HH-FraudPrevAgent backend: scaffolding only, nothing to run yet.');
-}
-
-void main();
+import './api/server.js';

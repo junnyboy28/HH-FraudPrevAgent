@@ -23,3 +23,9 @@ config/approvals.json
 
 # LLM response cache: makes re-running the benchmark free
 .llm-cache/
+
+# Ad-hoc investigations started from the UI are not submissions
+cases/LIVE-*.json
+
+# Case files vendored into the UI at build time by ui/scripts/sync-data.mjs
+ui/data/

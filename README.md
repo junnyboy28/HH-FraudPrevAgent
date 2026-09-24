@@ -82,6 +82,46 @@ npm run benchmark      # runs the 20 benchmark cases, writes cases/<case_id>.jso
 cd ui && npm run dev   # frontend on http://localhost:3000, separate terminal
 ```
 
+### The UI
+
+Two processes:
+
+```
+npm run dev            # agent backend on :4000, holds the loaded graph in memory
+cd ui && npm run dev   # case-view UI on :3000
+```
+
+- `/` the investigation queue
+- `/case/[id]` the case view: evidence with the query behind each claim, the
+  initial and final recommendations side by side, and Approve / Reject on any
+  action the permission gate routed to a human
+- `/new` start an investigation on any transaction in the graph. Every input is
+  a choice from the dataset (cardholder, then card, then transaction), and the
+  backend rejects an id that does not exist, so the agent can never be pointed
+  at a made-up entity.
+
+The backend loads its dataset slice once, which takes about ten seconds, so the
+UI stays responsive after the first request. Ad-hoc runs are written to
+`cases/LIVE-<txnId>.json` and are excluded from the submission and from the
+validator.
+
+### Deploying
+
+The UI is a normal Next.js app and deploys to Vercel with the project root set
+to `ui/`. `npm run prebuild` vendors the 20 case files and the policy config
+into `ui/data/`, so the queue and the case view work on a host that only
+deploys `ui/`.
+
+Live investigation needs the agent backend, and the backend needs the 224 MB of
+prepared CSVs, so it does not fit a serverless host. Two options:
+
+- **Read-only demo (simplest).** Deploy `ui/` to Vercel. The queue, case view,
+  evidence, SAR narratives and the initial-to-final action contrast all work.
+  `/new` reports that the backend is offline.
+- **Full app.** Run both processes on one container host (Render, Railway, Fly)
+  with the dataset present, then point the UI at the backend with
+  `AGENT_API_URL`.
+
 ### Benchmark
 
 `npm run benchmark` is the real validation target. It runs all 20 cases from

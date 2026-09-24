@@ -7,9 +7,23 @@
 import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
+// Locally the repo's cases/ is read directly, so a benchmark re-run shows up
+// immediately. A host that deploys only ui/ has no parent directory, so the
+// vendored copy in ui/data (written by scripts/sync-data.mjs at build time) is
+// the fallback.
 const REPO_ROOT = path.resolve(process.cwd(), '..');
-const CASES_DIR = path.join(REPO_ROOT, 'cases');
-const APPROVALS = path.join(REPO_ROOT, 'config', 'approvals.json');
+const VENDORED = path.join(process.cwd(), 'data');
+const CASES_DIR = existsSync(path.join(REPO_ROOT, 'cases'))
+  ? path.join(REPO_ROOT, 'cases')
+  : path.join(VENDORED, 'cases');
+const APPROVALS = existsSync(path.join(REPO_ROOT, 'config'))
+  ? path.join(REPO_ROOT, 'config', 'approvals.json')
+  : path.join(VENDORED, 'config', 'approvals.json');
+
+/** True when this instance can write approval records (a writable filesystem). */
+export function approvalsWritable(): boolean {
+  return existsSync(path.dirname(APPROVALS));
+}
 
 export interface Action {
   readonly action: string;
@@ -102,12 +116,14 @@ export function approvalsFor(caseId: string): Record<string, { decision: string;
  * executed without a record here, which is the point of the permission gate:
  * the agent recommends, a human decides.
  */
+/** Writes an approval record. No-ops on a read-only host rather than throwing. */
 export function recordApproval(
   caseId: string,
   action: string,
   route: string,
   decision: 'approved' | 'rejected',
 ): void {
+  if (!approvalsWritable()) return;
   const store = readApprovals();
   store[caseId] ??= {};
   const entry = store[caseId];

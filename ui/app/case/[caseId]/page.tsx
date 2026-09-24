@@ -1,26 +1,20 @@
-// The case view: evidence, pattern, risk, reasoning, and the recommended
-// actions with an approve control on anything the permission gate routed to a
-// human. The initial and final recommendations are shown side by side, since
-// revising a recommendation as evidence arrives is the behaviour being graded.
+// The case view. Ordered the way an analyst reads a case: what it is, how
+// confident we are, what the evidence was, what we recommended before and after
+// asking for more, and what needs a human signature.
 
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { approvalsFor, getCase, recordApproval, type Action } from '@/lib/cases';
 
-const VERDICT_STYLE: Record<string, string> = {
-  fraud: 'bg-red-100 text-red-800 ring-red-200',
-  legitimate: 'bg-emerald-100 text-emerald-800 ring-emerald-200',
-  uncertain: 'bg-amber-100 text-amber-800 ring-amber-200',
-};
+function routePill(route: string): string {
+  return route === 'L2' ? 'pill pill-l2' : route === 'L1' ? 'pill pill-l1' : 'pill pill-auto';
+}
 
-const SOURCE_STYLE: Record<string, string> = {
-  graph: 'bg-blue-100 text-blue-800',
-  customer: 'bg-purple-100 text-purple-800',
-  document: 'bg-neutral-200 text-neutral-800',
-  external: 'bg-neutral-200 text-neutral-800',
-};
+function sourcePill(source: string): string {
+  return source === 'customer' ? 'pill pill-uncertain' : source === 'graph' ? 'pill pill-neutral' : 'pill pill-neutral';
+}
 
-function ActionRow({
+function ActionItem({
   action,
   caseId,
   decision,
@@ -30,6 +24,7 @@ function ActionRow({
   decision?: { decision: string; at: string };
 }) {
   const gated = action.route !== 'auto';
+  const rule = /\b(R\d{1,2})\b/.exec(action.reason)?.[1];
 
   async function decide(formData: FormData): Promise<void> {
     'use server';
@@ -39,54 +34,36 @@ function ActionRow({
   }
 
   return (
-    <li className="flex flex-col gap-2 border-b border-neutral-100 py-3 last:border-0 sm:flex-row sm:items-start sm:justify-between">
-      <div className="min-w-0">
-        <div className="flex items-center gap-2">
-          <span className="font-mono text-sm font-medium">{action.action}</span>
-          <span
-            className={`rounded px-1.5 py-0.5 text-[11px] font-semibold ${
-              action.route === 'auto'
-                ? 'bg-neutral-100 text-neutral-700'
-                : action.route === 'L1'
-                  ? 'bg-orange-100 text-orange-800'
-                  : 'bg-red-100 text-red-800'
-            }`}
-          >
-            {action.route === 'auto' ? 'agent may execute' : `${action.route} approval required`}
-          </span>
-        </div>
-        <p className="mt-1 text-sm text-neutral-600">{action.reason}</p>
-      </div>
-      {gated ? (
-        decision ? (
-          <span
-            className={`shrink-0 self-start rounded px-2 py-1 text-xs font-medium ${
-              decision.decision === 'approved' ? 'bg-emerald-100 text-emerald-800' : 'bg-neutral-200 text-neutral-700'
-            }`}
-          >
-            {decision.decision} {new Date(decision.at).toLocaleString()}
-          </span>
+    <li className="border-b border-ink-800 px-3.5 py-3 last:border-0">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="mono text-[13px] font-semibold">{action.action}</span>
+        <span className={routePill(action.route)}>
+          {action.route === 'auto' ? 'agent executes' : `${action.route} approval`}
+        </span>
+        {rule ? <span className="pill pill-neutral">{rule}</span> : null}
+        {gated ? (
+          decision ? (
+            <span
+              className={`pill ${decision.decision === 'approved' ? 'pill-legit' : 'pill-neutral'} ml-auto`}
+              title={new Date(decision.at).toLocaleString()}
+            >
+              {decision.decision}
+            </span>
+          ) : (
+            <form action={decide} className="ml-auto flex gap-1.5">
+              <button name="decision" value="approved" className="btn btn-approve !px-2.5 !py-1 !text-[12px]">
+                Approve
+              </button>
+              <button name="decision" value="rejected" className="btn btn-ghost !px-2.5 !py-1 !text-[12px]">
+                Reject
+              </button>
+            </form>
+          )
         ) : (
-          <form action={decide} className="flex shrink-0 gap-2 self-start">
-            <button
-              name="decision"
-              value="approved"
-              className="rounded bg-neutral-900 px-3 py-1 text-xs font-medium text-white hover:bg-neutral-700"
-            >
-              Approve
-            </button>
-            <button
-              name="decision"
-              value="rejected"
-              className="rounded border border-neutral-300 px-3 py-1 text-xs font-medium hover:bg-neutral-100"
-            >
-              Reject
-            </button>
-          </form>
-        )
-      ) : (
-        <span className="shrink-0 self-start text-xs text-neutral-400">executed</span>
-      )}
+          <span className="ml-auto text-[11px] text-ink-400">executed</span>
+        )}
+      </div>
+      <p className="mt-1 text-[12.5px] leading-relaxed text-ink-300">{action.reason}</p>
     </li>
   );
 }
@@ -97,91 +74,217 @@ export default async function CasePage({ params }: { params: Promise<{ caseId: s
   if (!answer) notFound();
   const c = answer.case;
   const decisions = approvalsFor(caseId);
+  const pct = Math.round(c.fraud_probability * 100);
+  const riskColor = c.fraud_probability >= 0.7 ? 'text-risk-high' : c.fraud_probability >= 0.3 ? 'text-risk-mid' : 'text-risk-low';
+  const riskBg = c.fraud_probability >= 0.7 ? 'bg-risk-high' : c.fraud_probability >= 0.3 ? 'bg-risk-mid' : 'bg-risk-low';
+  const before = new Set(answer.next_best_actions.initial.map((a) => a.action));
+  const added = answer.next_best_actions.final.filter((a) => !before.has(a.action)).map((a) => a.action);
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-10">
-      <Link href="/" className="text-sm text-blue-700 underline-offset-2 hover:underline">
-        &larr; All cases
+    <main className="mx-auto max-w-6xl px-5 py-8">
+      <Link href="/" className="text-[12px] text-ink-400 hover:text-ink-200">
+        &larr; Queue
       </Link>
 
-      <header className="mt-4 flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-semibold tracking-tight">{answer.case_id}</h1>
-        <span className={`rounded px-2 py-0.5 text-xs font-medium ring-1 ${VERDICT_STYLE[c.verdict] ?? ''}`}>
+      {/* Header */}
+      <div className="mt-3 flex flex-wrap items-center gap-2.5">
+        <h1 className="mono text-xl font-semibold tracking-tight">{answer.case_id}</h1>
+        <span className={c.verdict === 'fraud' ? 'pill pill-fraud' : c.verdict === 'legitimate' ? 'pill pill-legit' : 'pill pill-uncertain'}>
           {c.verdict}
         </span>
-        <span className="rounded bg-neutral-100 px-2 py-0.5 text-xs text-neutral-700">{c.status}</span>
+        <span className="pill pill-neutral">{c.status.replace(/_/g, ' ')}</span>
         {c.written_to_graph ? (
-          <span className="rounded bg-blue-50 px-2 py-0.5 text-xs text-blue-800">
-            in graph as {c.graph_case_id}
+          <span className="pill pill-neutral" title="Written back to TigerGraph as case memory">
+            graph: {c.graph_case_id}
           </span>
         ) : null}
-      </header>
+        <span className="ml-auto text-[11px] text-ink-400">
+          {answer.tool_calls} graph calls &middot; {answer.tokens.toLocaleString()} tokens &middot; {answer.latency_s}s
+        </span>
+      </div>
 
-      {/* Risk and confidence */}
-      <section className="mt-6 rounded-lg border border-neutral-200 p-4">
-        <div className="flex items-baseline justify-between">
-          <span className="text-xs uppercase tracking-wide text-neutral-500">Fraud probability</span>
-          <span className="text-2xl font-semibold tabular-nums">{c.fraud_probability.toFixed(2)}</span>
-        </div>
-        <div className="mt-2 h-2 w-full overflow-hidden rounded bg-neutral-200">
-          <div
-            className={`h-full ${
-              c.fraud_probability >= 0.7 ? 'bg-red-500' : c.fraud_probability >= 0.3 ? 'bg-amber-500' : 'bg-emerald-500'
-            }`}
-            style={{ width: `${Math.round(c.fraud_probability * 100)}%` }}
-          />
-        </div>
-        <div className="mt-3 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
-          <div>
-            <div className="text-xs text-neutral-500">Pattern</div>
-            <div className="font-medium">{c.pattern.replace(/_/g, ' ')}</div>
+      <div className="mt-5 grid gap-4 lg:grid-cols-3">
+        {/* Risk */}
+        <section className="panel p-4 lg:col-span-1">
+          <div className="label">Fraud probability</div>
+          <div className="mt-2 flex items-end gap-2">
+            <span className={`text-4xl font-semibold tracking-tight ${riskColor}`}>{c.fraud_probability.toFixed(2)}</span>
+            <span className="pb-1.5 text-[11px] text-ink-400">{pct}%</span>
           </div>
-          <div>
-            <div className="text-xs text-neutral-500">Exposure</div>
-            <div className="font-medium tabular-nums">${c.exposure_usd.toFixed(2)}</div>
+          <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-ink-700">
+            <div className={`h-full rounded-full ${riskBg}`} style={{ width: `${Math.max(3, pct)}%` }} />
           </div>
-          <div>
-            <div className="text-xs text-neutral-500">Affected txns</div>
-            <div className="font-medium tabular-nums">{c.affected_txn_ids.length}</div>
+          <div className="mt-1 flex justify-between text-[10px] text-ink-400">
+            <span>0.15 clear</span>
+            <span>0.70 act</span>
+            <span>0.85 stop</span>
           </div>
-          <div>
-            <div className="text-xs text-neutral-500">Tool calls</div>
-            <div className="font-medium tabular-nums">{answer.tool_calls}</div>
-          </div>
-        </div>
-        {c.pattern_description ? (
-          <p className="mt-3 rounded bg-amber-50 p-3 text-sm text-amber-900">{c.pattern_description}</p>
-        ) : null}
-      </section>
 
-      {/* Reasoning */}
-      <section className="mt-6">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">Summary</h2>
-        <p className="mt-2 text-sm leading-relaxed text-neutral-800">{c.summary}</p>
-        <p className="mt-3 text-xs text-neutral-500">
-          <span className="font-medium">Stopped because:</span> {answer.stop_reason}
-        </p>
-      </section>
-
-      {/* Evidence timeline */}
-      <section className="mt-8">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">
-          Evidence ({c.evidence.length})
-        </h2>
-        <ol className="mt-3 space-y-3">
-          {c.evidence.map((e, i) => (
-            <li key={i} className="rounded-lg border border-neutral-200 p-3">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className={`rounded px-1.5 py-0.5 text-[11px] font-medium ${SOURCE_STYLE[e.source] ?? ''}`}>
-                  {e.source}
-                </span>
-                <code className="text-[11px] text-neutral-500">{e.ref}</code>
+          <dl className="mt-4 space-y-2.5 text-[12.5px]">
+            <div className="flex justify-between gap-3">
+              <dt className="text-ink-400">Pattern</dt>
+              <dd className="text-right">{c.pattern === 'none' ? 'none identified' : c.pattern.replace(/_/g, ' ')}</dd>
+            </div>
+            <div className="flex justify-between gap-3">
+              <dt className="text-ink-400">Exposure</dt>
+              <dd className="mono">${c.exposure_usd.toLocaleString(undefined, { minimumFractionDigits: 2 })}</dd>
+            </div>
+            <div className="flex justify-between gap-3">
+              <dt className="text-ink-400">Transactions</dt>
+              <dd className="mono">{c.affected_txn_ids.length}</dd>
+            </div>
+            {c.first_suspicious_txn_id ? (
+              <div className="flex justify-between gap-3">
+                <dt className="text-ink-400">First suspicious</dt>
+                <dd className="mono text-[11.5px]">{c.first_suspicious_txn_id}</dd>
               </div>
-              <p className="mt-1.5 text-sm text-neutral-800">{e.claim}</p>
+            ) : null}
+            {c.connected_card_ids.length > 0 ? (
+              <div className="flex justify-between gap-3">
+                <dt className="text-ink-400">Connected cards</dt>
+                <dd className="mono">{c.connected_card_ids.length}</dd>
+              </div>
+            ) : null}
+          </dl>
+
+          {c.connected_device_profiles.length > 0 ? (
+            <div className="mt-4">
+              <div className="label">Device profile</div>
+              {c.connected_device_profiles.map((d) => (
+                <p key={d} className="mono mt-1 break-words text-[11px] leading-relaxed text-ink-300">
+                  {d}
+                </p>
+              ))}
+            </div>
+          ) : null}
+        </section>
+
+        {/* Summary + pattern description */}
+        <section className="panel p-4 lg:col-span-2">
+          <div className="label">Analyst summary</div>
+          <p className="mt-2 text-[13.5px] leading-relaxed text-ink-100">{c.summary}</p>
+
+          {c.pattern_description ? (
+            <div className="panel-quiet mt-4 p-3">
+              <div className="label" style={{ color: 'var(--color-risk-mid)' }}>
+                Undocumented pattern
+              </div>
+              <p className="mt-1.5 text-[12.5px] leading-relaxed text-ink-200">{c.pattern_description}</p>
+            </div>
+          ) : null}
+
+          <div className="panel-quiet mt-4 p-3">
+            <div className="label">Why the investigation stopped</div>
+            <p className="mt-1.5 text-[12.5px] leading-relaxed text-ink-300">{answer.stop_reason}</p>
+          </div>
+
+          {c.similar_prior_cases.length > 0 ? (
+            <div className="mt-4">
+              <div className="label">Prior cases retrieved as memory</div>
+              <div className="mt-1.5 flex flex-wrap gap-1.5">
+                {c.similar_prior_cases.map((id) => (
+                  <span key={id} className="pill pill-neutral mono">
+                    {id}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </section>
+      </div>
+
+      {/* Next best action: initial vs final */}
+      <section className="mt-4">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="text-[15px] font-semibold tracking-tight">Next best action</h2>
+          <span className="text-[11px] text-ink-400">
+            the agent recommends; L1 and L2 wait for a human signature
+          </span>
+        </div>
+
+        <div className="mt-3 grid gap-4 md:grid-cols-2">
+          <div className="panel-quiet overflow-hidden">
+            <div className="border-b border-ink-800 px-3.5 py-2">
+              <div className="label">Before requesting evidence</div>
+            </div>
+            <ul>
+              {answer.next_best_actions.initial.map((a) => (
+                <li key={a.action} className="border-b border-ink-800 px-3.5 py-2.5 last:border-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="mono text-[12.5px]">{a.action}</span>
+                    <span className={routePill(a.route)}>{a.route}</span>
+                  </div>
+                  <p className="mt-0.5 text-[11.5px] leading-relaxed text-ink-400">{a.reason}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="panel overflow-hidden ring-1 ring-accent/25">
+            <div className="flex items-center gap-2 border-b border-ink-800 px-3.5 py-2">
+              <div className="label" style={{ color: 'var(--color-accent)' }}>
+                After evidence
+              </div>
+              {added.length > 0 ? (
+                <span className="pill pill-neutral ml-auto">+{added.length} new</span>
+              ) : null}
+            </div>
+            <ul>
+              {answer.next_best_actions.final.map((a) => (
+                <ActionItem key={a.action} action={a} caseId={caseId} decision={decisions[a.action]} />
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        <div className="panel-quiet mt-3 flex gap-2.5 p-3">
+          <svg viewBox="0 0 24 24" className="mt-0.5 h-4 w-4 shrink-0 text-accent" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M4 12h12M12 6l6 6-6 6" />
+          </svg>
+          <p className="text-[12.5px] leading-relaxed text-ink-200">
+            <span className="font-semibold text-ink-100">What changed: </span>
+            {answer.next_best_actions.what_changed}
+          </p>
+        </div>
+      </section>
+
+      {/* Evidence requests */}
+      {answer.evidence_requests.length > 0 ? (
+        <section className="mt-6">
+          <h2 className="text-[15px] font-semibold tracking-tight">Evidence requested</h2>
+          {answer.evidence_requests.map((r, i) => (
+            <div key={i} className="panel-quiet mt-2 p-3.5">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="pill pill-uncertain">{r.type.replace(/_/g, ' ')}</span>
+                <span className="text-[11px] text-ink-400">asked after step {r.asked_after_step}</span>
+              </div>
+              <p className="mt-2 text-[12.5px] leading-relaxed text-ink-200">{r.assumed_response}</p>
+            </div>
+          ))}
+        </section>
+      ) : null}
+
+      {/* Evidence */}
+      <section className="mt-6">
+        <div className="flex items-baseline justify-between">
+          <h2 className="text-[15px] font-semibold tracking-tight">Evidence</h2>
+          <span className="text-[11px] text-ink-400">{c.evidence.length} findings, each traced to its query</span>
+        </div>
+        <ol className="mt-3 space-y-2">
+          {c.evidence.map((e, i) => (
+            <li key={i} className="panel-quiet p-3.5">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="grid h-5 w-5 place-items-center rounded-full bg-ink-800 text-[10px] text-ink-300 ring-1 ring-ink-700">
+                  {i + 1}
+                </span>
+                <span className={sourcePill(e.source)}>{e.source}</span>
+                <code className="mono text-[10.5px] text-ink-400">{e.ref}</code>
+              </div>
+              <p className="mt-1.5 text-[12.5px] leading-relaxed text-ink-100">{e.claim}</p>
               {e.entity_ids.length > 0 ? (
-                <p className="mt-1 font-mono text-[11px] text-neutral-500">
-                  {e.entity_ids.slice(0, 8).join(', ')}
-                  {e.entity_ids.length > 8 ? ` +${e.entity_ids.length - 8} more` : ''}
+                <p className="mono mt-1.5 break-words text-[10.5px] text-ink-400">
+                  {e.entity_ids.slice(0, 10).join('  ')}
+                  {e.entity_ids.length > 10 ? `  +${e.entity_ids.length - 10}` : ''}
                 </p>
               ) : null}
             </li>
@@ -189,87 +292,41 @@ export default async function CasePage({ params }: { params: Promise<{ caseId: s
         </ol>
       </section>
 
-      {/* Evidence requests */}
-      {answer.evidence_requests.length > 0 ? (
-        <section className="mt-8">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">Evidence requested</h2>
-          {answer.evidence_requests.map((r, i) => (
-            <div key={i} className="mt-2 rounded-lg border border-purple-200 bg-purple-50 p-3">
-              <div className="text-xs font-medium text-purple-900">
-                {r.type} &middot; after step {r.asked_after_step}
-              </div>
-              <p className="mt-1 text-sm text-purple-900">{r.assumed_response}</p>
-            </div>
-          ))}
-        </section>
-      ) : null}
-
-      {/* Initial vs final: the graded behaviour */}
-      <section className="mt-8">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">Next best action</h2>
-        <p className="mt-1 text-xs text-neutral-500">
-          The agent recommends. Only <code className="font-mono">auto</code> actions execute themselves; L1 and
-          L2 wait for a human.
-        </p>
-        <div className="mt-3 grid gap-4 md:grid-cols-2">
-          <div className="rounded-lg border border-neutral-200 p-3">
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
-              Before requesting evidence
-            </h3>
-            <ul className="mt-1">
-              {answer.next_best_actions.initial.map((a) => (
-                <li key={a.action} className="border-b border-neutral-100 py-2 last:border-0">
-                  <span className="font-mono text-sm">{a.action}</span>
-                  <span className="ml-2 text-[11px] text-neutral-500">{a.route}</span>
-                  <p className="text-xs text-neutral-600">{a.reason}</p>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div className="rounded-lg border-2 border-neutral-900 p-3">
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-neutral-700">After evidence</h3>
-            <ul className="mt-1">
-              {answer.next_best_actions.final.map((a) => (
-                <ActionRow key={a.action} action={a} caseId={caseId} decision={decisions[a.action]} />
-              ))}
-            </ul>
-          </div>
-        </div>
-        <p className="mt-3 rounded bg-neutral-100 p-3 text-sm text-neutral-800">
-          <span className="font-medium">What changed:</span> {answer.next_best_actions.what_changed}
-        </p>
-      </section>
-
       {/* SAR */}
-      <section className="mt-8">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">
-          Suspicious activity report
-        </h2>
-        <div className={`mt-2 rounded-lg border p-3 ${answer.sar.file ? 'border-red-200 bg-red-50' : 'border-neutral-200'}`}>
-          <div className="text-sm font-medium">{answer.sar.file ? 'Filed' : 'Not filed'}</div>
-          <p className="mt-1 text-sm text-neutral-700">{answer.sar.reason}</p>
+      <section className="mt-6 mb-10">
+        <h2 className="text-[15px] font-semibold tracking-tight">Suspicious activity report</h2>
+        <div className={`panel mt-3 p-4 ${answer.sar.file ? 'ring-1 ring-risk-high/25' : ''}`}>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className={answer.sar.file ? 'pill pill-l2' : 'pill pill-neutral'}>
+              {answer.sar.file ? 'filed with the regulator' : 'not filed'}
+            </span>
+            {answer.sar.file ? (
+              <span className="mono text-[11px] text-ink-400">
+                ${answer.sar.total_amount_usd.toLocaleString(undefined, { minimumFractionDigits: 2 })} &middot;{' '}
+                {answer.sar.activity_dates.join(' to ')}
+              </span>
+            ) : null}
+          </div>
+          <p className="mt-2 text-[12px] leading-relaxed text-ink-300">{answer.sar.reason}</p>
           {answer.sar.file ? (
             <>
-              <p className="mt-3 text-sm leading-relaxed text-neutral-900">{answer.sar.narrative}</p>
-              <p className="mt-2 text-xs text-neutral-600">
-                Subjects: {answer.sar.subjects.slice(0, 6).join(', ')}
-                {answer.sar.subjects.length > 6 ? ` +${answer.sar.subjects.length - 6} more` : ''} &middot; $
-                {answer.sar.total_amount_usd.toFixed(2)} &middot; {answer.sar.activity_dates.join(' to ')}
+              <p className="mt-3 whitespace-pre-line text-[13px] leading-relaxed text-ink-100">
+                {answer.sar.narrative}
               </p>
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {answer.sar.subjects.slice(0, 8).map((s) => (
+                  <span key={s} className="pill pill-neutral mono">
+                    {s.length > 28 ? `${s.slice(0, 28)}…` : s}
+                  </span>
+                ))}
+                {answer.sar.subjects.length > 8 ? (
+                  <span className="pill pill-neutral">+{answer.sar.subjects.length - 8}</span>
+                ) : null}
+              </div>
             </>
           ) : null}
         </div>
       </section>
-
-      {/* Case memory */}
-      {c.similar_prior_cases.length > 0 ? (
-        <section className="mt-8 mb-10">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">
-            Prior cases used as memory
-          </h2>
-          <p className="mt-2 font-mono text-sm text-neutral-700">{c.similar_prior_cases.join(', ')}</p>
-        </section>
-      ) : null}
     </main>
   );
 }
