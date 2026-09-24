@@ -1,0 +1,111 @@
+// Connected components over the bipartite Customer <-> DeviceProfile graph,
+// used to surface coordinated fraud rings: groups of unrelated cardholders
+// bound together by shared device profiles (policy rule R6, shared origin, and
+// R9, undocumented coordinated abuse).
+//
+// This is the one place a graph algorithm earns its keep over a targeted
+// traversal. "Which cardholders share this device" is one hop. "Which clusters
+// of cardholders and devices form a connected group, anywhere in the graph" is
+// a component-labelling problem, and it is how HHG-014's ring is found without
+// being told where to look.
+//
+// Implemented as iterative min-label propagation: every vertex starts labelled
+// with its own internal id, then repeatedly takes the minimum label of its
+// neighbours until nothing changes. Vertices sharing a label are one component.
+//
+// Only device profiles specific enough to identify a device take part. A
+// profile like "Windows | Windows 10 | chrome 63.0 | 1920x1080" covers 842
+// cards and would merge the whole graph into one meaningless component, so the
+// n_cards ceiling is what keeps the components meaningful.
+
+CREATE QUERY findDeviceRings(INT min_accounts = 5, INT max_cards_on_profile = 400, INT max_iter = 10)
+FOR GRAPH FraudGraph {
+
+  TYPEDEF TUPLE <
+    INT component_id,
+    INT n_accounts,
+    INT n_devices,
+    STRING sample_device,
+    STRING sample_accounts
+  > RingRow;
+
+  MinAccum<INT> @comp;
+  SumAccum<INT> @@changed;
+  MapAccum<INT, SetAccum<STRING>> @@accountsIn;
+  MapAccum<INT, SetAccum<STRING>> @@devicesIn;
+  ListAccum<RingRow> @@rings;
+
+  // Device profiles that actually identify a device, and the cardholders on them.
+  devices = SELECT d
+            FROM DeviceProfile:d
+            WHERE d.n_cards >= 2 AND d.n_cards <= max_cards_on_profile
+            POST-ACCUM d.@comp = getvid(d);
+
+  accounts = SELECT c
+             FROM devices:d -(SHARED_BY:e)-> Customer:c
+             POST-ACCUM c.@comp = getvid(c);
+
+  frontier = devices UNION accounts;
+
+  // Min-label propagation until the labelling stabilises.
+  WHILE TRUE LIMIT max_iter DO
+    @@changed = 0;
+
+    toAccounts = SELECT c
+                 FROM devices:d -(SHARED_BY:e)-> Customer:c
+                 ACCUM c.@comp += d.@comp
+                 POST-ACCUM CASE WHEN c.@comp != getvid(c) THEN @@changed += 0 END;
+
+    toDevices = SELECT d
+                FROM accounts:c -(SHARES_DEVICE:e)-> DeviceProfile:d
+                WHERE d.n_cards >= 2 AND d.n_cards <= max_cards_on_profile
+                ACCUM d.@comp += c.@comp
+                POST-ACCUM @@changed += 1;
+
+    IF @@changed == 0 THEN
+      BREAK;
+    END;
+  END;
+
+  // Gather each component's members.
+  collectA = SELECT c
+             FROM accounts:c
+             ACCUM @@accountsIn += (c.@comp -> c.account_id);
+
+  collectD = SELECT d
+             FROM devices:d
+             ACCUM @@devicesIn += (d.@comp -> d.device_profile);
+
+  FOREACH (comp, accts) IN @@accountsIn DO
+    IF accts.size() >= min_accounts THEN
+      STRING sampleDevice = "";
+      IF @@devicesIn.containsKey(comp) THEN
+        FOREACH dev IN @@devicesIn.get(comp) DO
+          IF sampleDevice == "" THEN
+            sampleDevice = dev;
+          END;
+        END;
+      END;
+      STRING sampleAccounts = "";
+      INT shown = 0;
+      FOREACH a IN accts DO
+        IF shown < 8 THEN
+          IF sampleAccounts == "" THEN
+            sampleAccounts = a;
+          ELSE
+            sampleAccounts = sampleAccounts + "," + a;
+          END;
+          shown = shown + 1;
+        END;
+      END;
+      INT nDevices = 0;
+      IF @@devicesIn.containsKey(comp) THEN
+        nDevices = @@devicesIn.get(comp).size();
+      END;
+      @@rings += RingRow(comp, accts.size(), nDevices, sampleDevice, sampleAccounts);
+    END;
+  END;
+
+  PRINT @@rings AS rings;
+  PRINT @@rings.size() AS n_rings;
+}
