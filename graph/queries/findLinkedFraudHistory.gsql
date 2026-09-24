@@ -6,7 +6,7 @@
 // The 5,565 closed cases are loaded as FraudCase vertices with
 // source = "closed_history" and outcome confirmed_fraud or cleared.
 
-CREATE QUERY findLinkedFraudHistory(VERTEX<Customer> cust) FOR GRAPH FraudGraph {
+CREATE QUERY findLinkedFraudHistory(VERTEX<Customer> cust, INT max_cards_on_profile = 10) FOR GRAPH FraudGraph {
 
   TYPEDEF TUPLE <
     STRING case_id,
@@ -33,7 +33,12 @@ CREATE QUERY findLinkedFraudHistory(VERTEX<Customer> cust) FOR GRAPH FraudGraph 
                                           to_string(k.opened_at), "direct");
 
   // Indirect: accounts sharing a device with this one, and their fraud cases.
-  myDevices = SELECT d FROM seed:a -(SHARES_DEVICE:e)-> DeviceProfile:d;
+  // Only device profiles specific enough to identify a device. Without this
+  // ceiling a common handset build links the account to thousands of unrelated
+  // cases: measured at 1,453 versus 105 on HHG-014.
+  myDevices = SELECT d
+              FROM seed:a -(SHARES_DEVICE:e)-> DeviceProfile:d
+              WHERE d.n_cards >= 2 AND d.n_cards <= max_cards_on_profile;
 
   neighbours = SELECT other
                FROM myDevices:d -(SHARED_BY:e)-> Customer:other
