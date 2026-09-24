@@ -15,6 +15,7 @@ import { ClaudeNarrator } from '../src/llm/claude-narrator.js';
 import { TemplateNarrator } from '../src/llm/template-narrator.js';
 import { LocalEvidenceSource } from '../src/tools/local-evidence-source.js';
 import { TigerGraphEvidenceSource } from '../src/tools/tigergraph-evidence-source.js';
+import { TigerGraphMcpClient } from '../src/tools/tigergraph-mcp-client.js';
 import { TigerGraphCaseWriter } from '../src/memory/tigergraph-case-writer.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -27,9 +28,20 @@ async function main(): Promise<void> {
 
   // --tigergraph reads every piece of evidence through the compiled GSQL
   // queries instead of the local projection. Same interface, same orchestrator.
-  const useGraph = process.argv.includes('--tigergraph') && TigerGraphEvidenceSource.isConfigured();
-  const evidence = useGraph ? new TigerGraphEvidenceSource() : new LocalEvidenceSource();
-  console.log(useGraph ? 'evidence: TigerGraph (compiled GSQL queries)' : 'evidence: local projection of the loaded data');
+  const useMcp = process.argv.includes('--mcp') && TigerGraphMcpClient.isConfigured();
+  const useGraph = (useMcp || process.argv.includes('--tigergraph')) && TigerGraphEvidenceSource.isConfigured();
+  let mcpClient: TigerGraphMcpClient | null = null;
+  if (useMcp) {
+    mcpClient = new TigerGraphMcpClient();
+    const tools = await mcpClient.connect();
+    console.log(`TigerGraph MCP connected, ${tools.length} tools exposed`);
+  }
+  const evidence = useGraph ? new TigerGraphEvidenceSource(undefined, undefined, mcpClient) : new LocalEvidenceSource();
+  console.log(
+    useGraph
+      ? `evidence: TigerGraph compiled GSQL queries over ${useMcp ? 'TigerGraph MCP' : 'REST'}`
+      : 'evidence: local projection of the loaded data',
+  );
   // Claude writes the prose when a key is configured; the deterministic
   // narrator is the fallback so a missing key or a failed call can never block
   // the deliverable. Responses are cached to disk, so re-runs are free.

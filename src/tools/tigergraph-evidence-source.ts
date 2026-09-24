@@ -16,6 +16,7 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { TigerGraphMcpClient } from './tigergraph-mcp-client.js';
 import type {
   AccountProfile,
   CasePackEntry,
@@ -117,10 +118,22 @@ export class TigerGraphEvidenceSource implements EvidenceSource {
   private readonly deviceCards = new Map<string, number>();
   private readonly txnCache = new Map<string, Txn>();
 
+  /**
+   * With an MCP client supplied, the compiled GSQL queries run through the
+   * TigerGraph MCP server instead of our own REST calls. The parsing below is
+   * identical either way, so both transports return the same evidence and the
+   * orchestrator cannot tell them apart.
+   */
   constructor(
     private readonly host = envVar('TIGERGRAPH_HOST').replace(/\/$/, ''),
     private readonly secret = envVar('TIGERGRAPH_TOKEN'),
+    private readonly mcp: TigerGraphMcpClient | null = null,
   ) {}
+
+  /** Which transport the graph reads go over, for the record in the case trace. */
+  get transport(): 'mcp' | 'rest' {
+    return this.mcp === null ? 'rest' : 'mcp';
+  }
 
   static isConfigured(): boolean {
     return envVar('TIGERGRAPH_HOST') !== '' && envVar('TIGERGRAPH_TOKEN') !== '';
@@ -139,8 +152,12 @@ export class TigerGraphEvidenceSource implements EvidenceSource {
     return body.token;
   }
 
-  /** Runs an installed GSQL query and returns its PRINTed result blocks. */
+  /**
+   * Runs an installed GSQL query and returns its PRINTed result blocks, either
+   * through TigerGraph MCP or directly over REST.
+   */
   private async runQuery(name: string, params: Record<string, string | number>): Promise<Record<string, unknown>[]> {
+    if (this.mcp !== null) return this.runQueryViaMcp(name, params);
     const tok = await this.auth();
     const qs = Object.entries(params)
       .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(String(v))}`)
@@ -151,6 +168,41 @@ export class TigerGraphEvidenceSource implements EvidenceSource {
     const body = (await res.json()) as QueryResult;
     if (body.error === true) throw new Error(`GSQL ${name} failed: ${body.message ?? ''}`);
     return body.results ?? [];
+  }
+
+  /**
+   * The MCP server wraps a query's output in an envelope and returns it as text
+   * in a fenced JSON block, so it is unwrapped back to the same result blocks
+   * the REST path produces.
+   */
+  private async runQueryViaMcp(
+    name: string,
+    params: Record<string, string | number>,
+  ): Promise<Record<string, unknown>[]> {
+    const mcp = this.mcp;
+    if (mcp === null) throw new Error('no MCP client');
+    const raw = await mcp.runInstalledQuery(name, params);
+    const parsed = typeof raw === 'string' ? this.unwrapFenced(raw) : raw;
+    const envelope = parsed as {
+      success?: boolean;
+      summary?: string;
+      data?: { result?: Record<string, unknown>[] };
+    };
+    if (envelope.success === false) {
+      throw new Error(`MCP query ${name} failed: ${envelope.summary ?? 'unknown error'}`);
+    }
+    return envelope.data?.result ?? [];
+  }
+
+  /** Pulls JSON out of a ```json fenced block, which is how the server replies. */
+  private unwrapFenced(text: string): unknown {
+    const fenced = /```(?:json)?\s*([\s\S]*?)```/.exec(text);
+    const body = fenced?.[1] ?? text;
+    try {
+      return JSON.parse(body) as unknown;
+    } catch {
+      return {};
+    }
   }
 
   private block(results: Record<string, unknown>[], key: string): unknown {

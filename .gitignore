@@ -29,3 +29,8 @@ cases/LIVE-*.json
 
 # Case files vendored into the UI at build time by ui/scripts/sync-data.mjs
 ui/data/
+
+# Submission prose drafts, kept local
+docs/blog-post.md
+docs/social-post.md
+docs/demo-script.md
