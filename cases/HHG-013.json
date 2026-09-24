@@ -76,6 +76,38 @@
         "entity_ids": [
           "C07671-K2"
         ]
+      },
+      {
+        "claim": "Policy section 3a (A case is not a report): Two different things, and the agent produces both. **A case** (`CREATE_CASE`) is the bank's internal record of an investigation. Open one whenever fraud probability reaches 0.30, whenever you request evidence, or whenever a customer disputes a charge. A case can be closed as fraud or as legitimate. It can be updated wh",
+        "source": "document",
+        "ref": "policydoc:policy-section-3a",
+        "entity_ids": [
+          "policy-section-3a"
+        ]
+      },
+      {
+        "claim": "Policy section 3 (Rules): **R1. Verify before you block on a weak signal.** If the case rests on a single signal (including a risk score alone) and your assessed fraud probability is below 0.70, recommend `VERIFY_WITH_CUSTOMER` or `STEP_UP_AUTH` before any block. Blocking a legitimate customer on one signal is a policy breach. **R2. Customer de",
+        "source": "document",
+        "ref": "policydoc:policy-section-3",
+        "entity_ids": [
+          "policy-section-3"
+        ]
+      },
+      {
+        "claim": "Policy card_not_present_fraud (Card-not-present fraud): The number is used online without the card. Amounts and products that don't fit the cardholder's history, often in a burst of two to four within 48 hours. On its own, one unusual online purchase is ambiguous: verify. Policy R1 to R4.",
+        "source": "document",
+        "ref": "policydoc:pattern-card_not_present_fraud",
+        "entity_ids": [
+          "pattern-card_not_present_fraud"
+        ]
+      },
+      {
+        "claim": "Policy section 1 (Actions): | Action | What it does | Customer impact | |---|---|---| | `ALLOW_TRANSACTION` | Let the flagged transaction stand | None | | `DECLINE_TRANSACTION` | Decline the flagged authorization only. Card stays active | Low | | `MONITOR_CARD` | Card stays active; raise monitoring sensitivity for 72 hours | None | | `MONITOR_CON",
+        "source": "document",
+        "ref": "policydoc:policy-section-1",
+        "entity_ids": [
+          "policy-section-1"
+        ]
       }
     ],
     "similar_prior_cases": [
@@ -88,7 +120,7 @@
       "CC-3298",
       "CC-3364"
     ],
-    "summary": "Transaction 3526826 for $35.66 online was flagged by the bank's model risk score of 0.76 and routed for review. The device profile shows a new Windows Chrome browser to the account, which typically warrants scrutiny. However, the cardholder's account history shows 1569 transactions across 14 regions and both channels since July 2016, with a median spend of $59.03, indicating established and active account use. The account does carry three prior confirmed-fraud cases (two account takeovers and one card-not-present incident), and the device triggering this transaction is shared with another account that generated eight structurally similar confirmed-fraud cases, all involving new-device or account-takeover patterns. Despite these red flags, the pattern checks returned no match, the assessment assigned fraud probability of only 0.18, and the transaction amount is modest and consistent with historical spending. The totality of the evidence suggests this is a legitimate transaction by an established cardholder with an unfortunately compromised device profile. I am moderately confident in closure, though the shared-device connection and account history warrant continued monitoring.",
+    "summary": "Transaction 3526826 ($35.66 online) was flagged by the model at 0.76. The device using the card is new to the account, and the device profile is shared with another account, both signals that appear in the prior fraud history. Of eight structurally similar closed cases retrieved for this account, all eight were confirmed fraud, and three of the account's own prior cases involved account takeover or card-not-present fraud on new devices. However, the transaction amount is consistent with the cardholder's median spend of $59.03, and the flagged transaction stands alone without the burst pattern typical of card-not-present fraud. The assessed fraud probability is 0.18, which is well below the 0.70 threshold for block-on-weak-signal policy. The account shows 1569 legitimate transactions across 14 regions over six months, indicating established usage. While the device novelty and shared origin warrant attention, a single unusual online purchase on a new device is ambiguous per policy. Confidence in the legitimate verdict is moderate, resting on low fraud probability and transaction fit rather on strong clearing evidence. Recommend VERIFY_WITH_CUSTOMER or STEP_UP_AUTH per policy R1 before any block.",
     "written_to_graph": true,
     "graph_case_id": "CASE-2016-013"
   },
@@ -119,7 +151,7 @@
     "activity_dates": []
   },
   "stop_reason": "Further evidence-gathering would not change the recommended action: the available signals are exhausted and the case is recorded at probability 0.18.",
-  "tool_calls": 7,
-  "tokens": 0,
-  "latency_s": 0
+  "tool_calls": 8,
+  "tokens": 32720,
+  "latency_s": 5.5
 }

@@ -83,6 +83,38 @@
         "entity_ids": [
           "C05876-K2"
         ]
+      },
+      {
+        "claim": "Policy section 3a (A case is not a report): Two different things, and the agent produces both. **A case** (`CREATE_CASE`) is the bank's internal record of an investigation. Open one whenever fraud probability reaches 0.30, whenever you request evidence, or whenever a customer disputes a charge. A case can be closed as fraud or as legitimate. It can be updated wh",
+        "source": "document",
+        "ref": "policydoc:policy-section-3a",
+        "entity_ids": [
+          "policy-section-3a"
+        ]
+      },
+      {
+        "claim": "Policy section 3 (Rules): **R1. Verify before you block on a weak signal.** If the case rests on a single signal (including a risk score alone) and your assessed fraud probability is below 0.70, recommend `VERIFY_WITH_CUSTOMER` or `STEP_UP_AUTH` before any block. Blocking a legitimate customer on one signal is a policy breach. **R2. Customer de",
+        "source": "document",
+        "ref": "policydoc:policy-section-3",
+        "entity_ids": [
+          "policy-section-3"
+        ]
+      },
+      {
+        "claim": "Policy section 1 (Actions): | Action | What it does | Customer impact | |---|---|---| | `ALLOW_TRANSACTION` | Let the flagged transaction stand | None | | `DECLINE_TRANSACTION` | Decline the flagged authorization only. Card stays active | Low | | `MONITOR_CARD` | Card stays active; raise monitoring sensitivity for 72 hours | None | | `MONITOR_CON",
+        "source": "document",
+        "ref": "policydoc:policy-section-1",
+        "entity_ids": [
+          "policy-section-1"
+        ]
+      },
+      {
+        "claim": "Policy out_of_region_use (Out-of-region use): Card-present purchases in a billing region the cardholder has no history in, while their normal activity continues at home. Several days of purchases in one new region is a trip, not a clone. Policy R2, R3.",
+        "source": "document",
+        "ref": "policydoc:pattern-out_of_region_use",
+        "entity_ids": [
+          "pattern-out_of_region_use"
+        ]
       }
     ],
     "similar_prior_cases": [
@@ -95,7 +127,7 @@
       "CC-1828",
       "CC-2664"
     ],
-    "summary": "Transaction 3553342 ($30.91, in-person, product code W, billing region 494.0 on 2016-12-18) was flagged by the bank's model with a risk score of 0.55. The cardholder's transaction history shows 991 transactions across 42 regions over five months with a median of $49.05, indicating established and geographically diverse activity consistent with the flagged transaction's profile. Graph analysis identified eight structurally similar closed cases via shared device and same region, all confirmed fraud; however, those cases involved card-not-present fraud or out-of-region use patterns, whereas this transaction is in-person and within the cardholder's established region set. The account does carry one prior confirmed fraud case (CC-2370, card-not-present), raising historical risk. Assessment assigns fraud probability of 0.18 and classifies the transaction as legitimate with no detected fraud pattern and zero exposure. The evidence shows this is a low-value in-person transaction consistent with the account's normal spending behavior, and while device-sharing and prior history warrant monitoring, the current transaction lacks the specific fraud indicators present in prior cases. I am moderately confident this transaction is legitimate.",
+    "summary": "Transaction 3553342 ($30.91, in_person, product code W on 2016-12-18) was flagged by the bank's model at risk score 0.55. The cardholder's account shows 991 legitimate transactions across 42 billing regions with median spend $49.05, making this transaction consistent with established patterns. The account does carry prior fraud history (case CC-2370, card_not_present_fraud), and case memory returned 8 structurally similar closed cases all confirmed as fraud, retrieved via shared device profile with account C10149. However, those prior cases involved out_of_region_use and card_not_present patterns, whereas the current transaction is in_person and within the cardholder's normal geographic and channel activity. The assessed fraud probability is 0.18 with no pattern match identified. Because the case rests on a moderate risk score alone and fraud probability falls well below 0.70, blocking without verification would violate policy. I conclude this transaction is legitimate with low confidence that it represents fraud, and recommend closure without action.",
     "written_to_graph": true,
     "graph_case_id": "CASE-2016-012"
   },
@@ -126,7 +158,7 @@
     "activity_dates": []
   },
   "stop_reason": "Further evidence-gathering would not change the recommended action: the available signals are exhausted and the case is recorded at probability 0.18.",
-  "tool_calls": 6,
-  "tokens": 0,
-  "latency_s": 0
+  "tool_calls": 7,
+  "tokens": 30988,
+  "latency_s": 5.4
 }

@@ -117,6 +117,38 @@
         "entity_ids": [
           "C08106-K1"
         ]
+      },
+      {
+        "claim": "Policy section 3a (A case is not a report): Two different things, and the agent produces both. **A case** (`CREATE_CASE`) is the bank's internal record of an investigation. Open one whenever fraud probability reaches 0.30, whenever you request evidence, or whenever a customer disputes a charge. A case can be closed as fraud or as legitimate. It can be updated wh",
+        "source": "document",
+        "ref": "policydoc:policy-section-3a",
+        "entity_ids": [
+          "policy-section-3a"
+        ]
+      },
+      {
+        "claim": "Policy card_not_present_new_device (Card-not-present fraud from a new device): Same as above, with the identity record marking the device as `New` for this account, sometimes behind a proxy. Stronger than pattern 2, still not proof: people buy new phones.",
+        "source": "document",
+        "ref": "policydoc:pattern-card_not_present_new_device",
+        "entity_ids": [
+          "pattern-card_not_present_new_device"
+        ]
+      },
+      {
+        "claim": "Policy section 3 (Rules): **R1. Verify before you block on a weak signal.** If the case rests on a single signal (including a risk score alone) and your assessed fraud probability is below 0.70, recommend `VERIFY_WITH_CUSTOMER` or `STEP_UP_AUTH` before any block. Blocking a legitimate customer on one signal is a policy breach. **R2. Customer de",
+        "source": "document",
+        "ref": "policydoc:policy-section-3",
+        "entity_ids": [
+          "policy-section-3"
+        ]
+      },
+      {
+        "claim": "Policy section 1 (Actions): | Action | What it does | Customer impact | |---|---|---| | `ALLOW_TRANSACTION` | Let the flagged transaction stand | None | | `DECLINE_TRANSACTION` | Decline the flagged authorization only. Card stays active | Low | | `MONITOR_CARD` | Card stays active; raise monitoring sensitivity for 72 hours | None | | `MONITOR_CON",
+        "source": "document",
+        "ref": "policydoc:policy-section-1",
+        "entity_ids": [
+          "policy-section-1"
+        ]
       }
     ],
     "similar_prior_cases": [
@@ -129,7 +161,7 @@
       "CC-0528",
       "CC-0541"
     ],
-    "summary": "Customer C08106 reported a $128.33 online purchase (transaction 3583227) on 2016-12-29 as unauthorized. The transaction used a new device (Firefox 47.0) not previously associated with the account and was four times the cardholder's median transaction amount of $26.62 across 216 prior transactions. An episode of eight transactions totaling $384.43 occurred over three days using this new device, with the flagged transaction as the second in the sequence. The account has three prior confirmed card-not-present fraud cases, and eight structurally similar closed cases retrieved by shared device and matching pattern were all confirmed fraud with no false alarms. The card-not-present-new-device pattern matched at 0.57 strength. Based on the customer's direct denial, the anomalous transaction size, the new device usage, the cluster of activity within a short timeframe, and the consistent history of confirmed fraud on this account, this is a strong fraud case. Confidence is high.",
+    "summary": "Customer C08106 reported the $128.33 online transaction 3583227 on 2016-12-29 as unauthorized. The transaction was made from Firefox 47.0, marked as a new device for this account, and the device profile is shared with account C00294. The flagged transaction is over four times the cardholder's median transaction amount of $26.62 across 216 prior transactions, and the episode contains seven additional transactions totaling $384.43 across December 28-30. The card_not_present_new_device pattern triggered at strength 0.57, and all eight similar closed cases in memory were confirmed fraud with no false alarms, while this account also has three prior confirmed card-not-present fraud cases. The assessment fraud probability of 0.77 and the consistent pattern match across historical cases strongly support a fraud verdict. I am highly confident this is fraudulent activity.",
     "written_to_graph": true,
     "graph_case_id": "CASE-2016-004"
   },
@@ -184,7 +216,7 @@
   "sar": {
     "file": true,
     "reason": "R6: activity connects to a device profile shared with account C00294",
-    "narrative": "Customer C08106 reported that transaction 3583227 for $128.33 was unauthorized. The transaction was made using card C08106-K1 and a device profile running Firefox 47.0, which the bank's identity records mark as new to this account.\n\nBetween December 28 and December 30, 2016, eight transactions totaling $384.43 were processed online using card C08106-K1. The flagged transaction occurred on December 29, 2016 at 01:53:54. The device profile associated with this transaction is shared with account C00294. The transaction amount of $128.33 is more than four times the cardholder's median transaction amount of $26.62 based on 216 prior transactions.\n\nThe activity follows a pattern of card-not-present fraud on a newly observed device. The cardholder has three prior confirmed fraud cases on record, all involving card-not-present fraud. Of eight similar closed cases retrieved through shared device and pattern matching, all eight were confirmed fraud with no false alarms.\n\nThe bank's model risk score for the flagged transaction is 0.34. The total exposure across the episode is $384.43. The bank has created a case, is monitoring connected cards, and recommends blocking card C08106-K1 and filing a report.",
+    "narrative": "Customer C08106 reported that a $128.33 online purchase on card C08106-K1 made on 2016-12-29 at 01:53:54 was unauthorized. The transaction was made using a device profile (Firefox 47.0) that the identity record marks as new to this account. The flagged transaction is part of an eight-transaction episode spanning 2016-12-28 through 2016-12-30, with a total exposure of $384.43 across online channels and unrecorded billing regions. The cardholder's baseline history shows 216 transactions between 2016-07-06 and 2016-12-30 with a median amount of $26.62, making the flagged transaction more than four times the typical purchase size. The device used for this transaction is shared with account C00294. This account has three prior confirmed card-not-present fraud cases on record. The pattern of card-not-present fraud from a new device matches eight structurally similar closed cases, all of which were confirmed fraud. The assessment assigns a fraud probability of 0.77 based on the new device pattern, though the bank's independent model risk score for the individual flagged transaction is 0.34. The customer's direct dispute of the charge, combined with the pattern match, new device marker, transaction size anomaly, and account history, supports the fraud verdict. The bank created a case, initiated monitoring of connected cards, and filed this report. The suspicious activity total is $384.43, and the bank recommends blocking card C08106-K1.",
     "subjects": [
       "C08106",
       "C08106-K1",
@@ -216,7 +248,7 @@
     ]
   },
   "stop_reason": "Further evidence-gathering would not change the recommended action: the available signals are exhausted and the case is recorded at probability 0.77.",
-  "tool_calls": 7,
-  "tokens": 0,
-  "latency_s": 0
+  "tool_calls": 8,
+  "tokens": 9625,
+  "latency_s": 9.6
 }

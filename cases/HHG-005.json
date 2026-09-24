@@ -70,6 +70,38 @@
         "entity_ids": [
           "C02923-K1"
         ]
+      },
+      {
+        "claim": "Policy section 3a (A case is not a report): Two different things, and the agent produces both. **A case** (`CREATE_CASE`) is the bank's internal record of an investigation. Open one whenever fraud probability reaches 0.30, whenever you request evidence, or whenever a customer disputes a charge. A case can be closed as fraud or as legitimate. It can be updated wh",
+        "source": "document",
+        "ref": "policydoc:policy-section-3a",
+        "entity_ids": [
+          "policy-section-3a"
+        ]
+      },
+      {
+        "claim": "Policy section 0 (What the agent starts with): Every transaction carries a `risk_score` between 0 and 1 from the bank's detection model. The model is useful and imperfect: many high scores are legitimate, and some fraud scores low. A score is a reason to look, never a verdict. The only confirmed outcomes are in the closed cases.",
+        "source": "document",
+        "ref": "policydoc:policy-section-0",
+        "entity_ids": [
+          "policy-section-0"
+        ]
+      },
+      {
+        "claim": "Policy section 3 (Rules): **R1. Verify before you block on a weak signal.** If the case rests on a single signal (including a risk score alone) and your assessed fraud probability is below 0.70, recommend `VERIFY_WITH_CUSTOMER` or `STEP_UP_AUTH` before any block. Blocking a legitimate customer on one signal is a policy breach. **R2. Customer de",
+        "source": "document",
+        "ref": "policydoc:policy-section-3",
+        "entity_ids": [
+          "policy-section-3"
+        ]
+      },
+      {
+        "claim": "Policy section 1 (Actions): | Action | What it does | Customer impact | |---|---|---| | `ALLOW_TRANSACTION` | Let the flagged transaction stand | None | | `DECLINE_TRANSACTION` | Decline the flagged authorization only. Card stays active | Low | | `MONITOR_CARD` | Card stays active; raise monitoring sensitivity for 72 hours | None | | `MONITOR_CON",
+        "source": "document",
+        "ref": "policydoc:policy-section-1",
+        "entity_ids": [
+          "policy-section-1"
+        ]
       }
     ],
     "similar_prior_cases": [
@@ -82,7 +114,7 @@
       "CC-2635",
       "CC-2800"
     ],
-    "summary": "Transaction 3523199 for $100.07 was flagged by the bank's model with a risk score of 0.54 for review. The transaction is a $100.07 online purchase in product code R from a newly registered iOS device, and the device profile is shared with another account (C03714). The cardholder's account has a history of three prior confirmed account takeover cases and shows typical spending patterns across 92 transactions, while case memory retrieved eight structurally similar closed cases via shared device and billing region, all eight of which were confirmed fraud with exposures ranging from $99.99 to $6,539.73. However, the bank's internal assessment assigned this transaction a fraud probability of only 0.18 with a verdict of legitimate and no pattern match, resulting in zero fraud exposure. The case recommendation is to close without fraud action, and given the low fraud probability assessment despite the contextual risk factors and historical pattern similarities, I conclude this transaction is legitimate with moderate confidence, acknowledging that the shared device and account history create some residual concern.",
+    "summary": "Transaction 3523199 ($100.07 online on 2016-12-07) was flagged by the bank's model at risk score 0.54. The device profile is new to the account (iOS Device, marked New), and it is shared with account C03714. The graph showed 8 structurally similar closed cases retrieved by shared device and billing region, all 8 confirmed as fraud, predominantly account takeover and card-not-present patterns with exposures ranging from $99.99 to $6539.73. The customer account itself has 3 prior confirmed-fraud cases on record, all account takeover incidents. However, the assessed fraud probability for this transaction is 0.18, the transaction amount ($100.07) is close to the account's median spending ($117.01), and the cardholder's broader pattern shows 92 legitimate transactions across multiple channels and regions over five months. The device sharing with another account is a concern but does not definitively establish fraud on this single transaction. I concluded this transaction is legitimate with low confidence due to the account's fraud history and the new device signal, but the weak fraud probability and ordinary spending pattern do not support a fraud finding on the evidence presented.",
     "written_to_graph": true,
     "graph_case_id": "CASE-2016-005"
   },
@@ -113,7 +145,7 @@
     "activity_dates": []
   },
   "stop_reason": "Further evidence-gathering would not change the recommended action: the available signals are exhausted and the case is recorded at probability 0.18.",
-  "tool_calls": 7,
-  "tokens": 0,
-  "latency_s": 0
+  "tool_calls": 8,
+  "tokens": 11395,
+  "latency_s": 6.2
 }

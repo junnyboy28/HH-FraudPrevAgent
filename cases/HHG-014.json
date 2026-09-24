@@ -133,6 +133,38 @@
         "entity_ids": [
           "C13487-K1"
         ]
+      },
+      {
+        "claim": "Policy card_not_present_new_device (Card-not-present fraud from a new device): Same as above, with the identity record marking the device as `New` for this account, sometimes behind a proxy. Stronger than pattern 2, still not proof: people buy new phones.",
+        "source": "document",
+        "ref": "policydoc:pattern-card_not_present_new_device",
+        "entity_ids": [
+          "pattern-card_not_present_new_device"
+        ]
+      },
+      {
+        "claim": "Policy section 3 (Rules): **R1. Verify before you block on a weak signal.** If the case rests on a single signal (including a risk score alone) and your assessed fraud probability is below 0.70, recommend `VERIFY_WITH_CUSTOMER` or `STEP_UP_AUTH` before any block. Blocking a legitimate customer on one signal is a policy breach. **R2. Customer de",
+        "source": "document",
+        "ref": "policydoc:policy-section-3",
+        "entity_ids": [
+          "policy-section-3"
+        ]
+      },
+      {
+        "claim": "Policy section 3a (A case is not a report): Two different things, and the agent produces both. **A case** (`CREATE_CASE`) is the bank's internal record of an investigation. Open one whenever fraud probability reaches 0.30, whenever you request evidence, or whenever a customer disputes a charge. A case can be closed as fraud or as legitimate. It can be updated wh",
+        "source": "document",
+        "ref": "policydoc:policy-section-3a",
+        "entity_ids": [
+          "policy-section-3a"
+        ]
+      },
+      {
+        "claim": "Policy section 1 (Actions): | Action | What it does | Customer impact | |---|---|---| | `ALLOW_TRANSACTION` | Let the flagged transaction stand | None | | `DECLINE_TRANSACTION` | Decline the flagged authorization only. Card stays active | Low | | `MONITOR_CARD` | Card stays active; raise monitoring sensitivity for 72 hours | None | | `MONITOR_CON",
+        "source": "document",
+        "ref": "policydoc:policy-section-1",
+        "entity_ids": [
+          "policy-section-1"
+        ]
       }
     ],
     "similar_prior_cases": [
@@ -145,7 +177,7 @@
       "CC-4647",
       "CC-5177"
     ],
-    "summary": "Transaction 3478561 for $74.96 was flagged as part of a coordinated fraud ring using a specific device profile (SM-G935F Build/NRD90M) across 28 unrelated cardholders within one month, all appearing as new devices behind an anonymous proxy. The graph evidence shows this device was used by 52 cards dataset-wide but concentrated in a one-month window affecting multiple cardholders, indicating organized abuse rather than a single account compromise. Six similar prior closed cases retrieved from memory were all confirmed fraud, five matching the undocumented pattern and two matching the shared device and region. The flagged cardholder's baseline activity of 85 transactions across two regions over six months appears legitimate, making this single online transaction an anomaly consistent with account exploitation. No additional evidence was requested. We conclude this is fraud with high confidence (0.90), part of a larger coordinated scheme, with exposure limited to $74.96 on this card.",
+    "summary": "Transaction 3478561 ($74.96, online, 2016-11-22) was flagged as part of an analyst review of coordinated fraud across multiple cards. Graph analysis identified that the specific device profile (SM-G935F Build/NRD90M, Android 7.0) used for this transaction is appearing as a new device across 28 different cardholders within one month, all behind an anonymous proxy, indicating a single fraudulent origin rather than a compromised individual account. This undocumented pattern does not fit the five established fraud signatures but matches the structural characteristics of six prior closed cases, all confirmed fraud with total exposure of $3,601.87. The cardholder's baseline activity (85 transactions, median $48.03, across 2 regions and multiple channels) shows no signs of compromise. Fraud probability is assessed at 0.90 with high confidence. The flagged transaction will be declined and the card blocked pending further investigation of the connected device cluster.",
     "written_to_graph": true,
     "graph_case_id": "CASE-2016-014"
   },
@@ -210,7 +242,7 @@
   "sar": {
     "file": true,
     "reason": "R6: activity connects to a device profile (\"SM-G935F Build/NRD90M | Android 7.0 | chrome 62.0 for android | 1920x1080\") used by 28 cardholders within a month",
-    "narrative": "Customer C13487 holds card C13487-K1, which on November 22, 2016 at 16:11:00 UTC was used to make a $74.96 online purchase of product code C in billing region 191.0. The transaction originated from device profile SM-G935F Build/NRD90M running Android 7.0 and Chrome 62.0 for Android at 1920x1080 resolution, a device marked as new to this account and accessed through an anonymous proxy. Investigation revealed that this specific device profile was used within a single month by 28 different cardholders, each appearing as a new device on their respective accounts, all behind the same anonymous proxy infrastructure. The cardholder's baseline activity shows 85 transactions spread across 2 billing regions and both in-person and online channels between July and December 2016, with a median transaction size of $48.03. This pattern of a single concrete device build appearing as new across dozens of unrelated accounts within a short timeframe, combined with anonymous proxy masking and the absence of any legitimate shared-device scenario, indicates coordinated fraud originating from a single source rather than compromise of individual cardholders. Prior closed cases involving the same device profile yielded 8 confirmed fraud cases with no false alarms, including multiple instances flagged as undocumented patterns. The flagged transaction itself carries a total suspicious amount of $74.96. The bank blocked card C13487-K1, created a case file, flagged 28 connected cards for monitoring, escalated to analyst review, and filed a report for regulatory attention.",
+    "narrative": "Customer C13487 holds card C13487-K1, which was used to make a $74.96 online purchase of product code C on November 22, 2016 at 16:11 UTC in billing region 191.0. The transaction originated from a device with the specific profile SM-G935F Build/NRD90M running Android 7.0 and Chrome 62.0 for Android at 1920x1080 resolution, routed through an anonymous proxy. This device profile is marked as new to the account. The same device profile was used by 28 different cardholders within a one-month window, with each instance appearing as a new device on the respective accounts and each routed through an anonymous proxy. This pattern does not match any of the five documented fraud patterns because it represents coordinated abuse from a single origin across multiple unrelated cardholders rather than compromise of any individual account. Eight prior closed cases retrieved as structurally similar, all confirmed as fraud, show total exposures of $3,601.87. The bank's model risk score for this transaction was 0.05, which is a low input signal on its own. The activity is suspicious because a specific handset build simultaneously appears as new across dozens of unrelated accounts behind anonymous routing, indicating systematic card testing or fraud originating from a single coordinated source rather than legitimate cardholder activity. The bank created a case, escalated to analyst review, monitored connected cards, and filed a report with total suspicious exposure of $74.96 on this flagged transaction.",
     "subjects": [
       "C13487",
       "C13487-K1",
@@ -242,8 +274,8 @@
       "2016-11-22"
     ]
   },
-  "stop_reason": "Fraud probability 0.90 is at or above 0.85 with 5 independent pieces of evidence, which policy section 6 treats as sufficient to act.",
-  "tool_calls": 7,
-  "tokens": 0,
-  "latency_s": 0
+  "stop_reason": "Fraud probability 0.90 is at or above 0.85 with 9 independent pieces of evidence, which policy section 6 treats as sufficient to act.",
+  "tool_calls": 8,
+  "tokens": 37158,
+  "latency_s": 11.5
 }

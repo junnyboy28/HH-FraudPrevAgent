@@ -15,7 +15,8 @@
     "benchmark": "tsx benchmarks/run_benchmark.ts",
     "prep:sample": "tsx graph/load/prepare_data.ts",
     "prep:full": "tsx graph/load/prepare_data.ts --full",
-    "validate": "tsx benchmarks/validate_answers.ts"
+    "validate": "tsx benchmarks/validate_answers.ts",
+    "ingest:policy": "tsx scripts/ingest-policy-docs.ts"
   },
   "devDependencies": {
     "@types/node": "^22.20.4",

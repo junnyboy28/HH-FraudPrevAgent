@@ -83,6 +83,38 @@
         ]
       },
       {
+        "claim": "Policy card_not_present_fraud (Card-not-present fraud): The number is used online without the card. Amounts and products that don't fit the cardholder's history, often in a burst of two to four within 48 hours. On its own, one unusual online purchase is ambiguous: verify. Policy R1 to R4.",
+        "source": "document",
+        "ref": "policydoc:pattern-card_not_present_fraud",
+        "entity_ids": [
+          "pattern-card_not_present_fraud"
+        ]
+      },
+      {
+        "claim": "Policy section 1 (Actions): | Action | What it does | Customer impact | |---|---|---| | `ALLOW_TRANSACTION` | Let the flagged transaction stand | None | | `DECLINE_TRANSACTION` | Decline the flagged authorization only. Card stays active | Low | | `MONITOR_CARD` | Card stays active; raise monitoring sensitivity for 72 hours | None | | `MONITOR_CON",
+        "source": "document",
+        "ref": "policydoc:policy-section-1",
+        "entity_ids": [
+          "policy-section-1"
+        ]
+      },
+      {
+        "claim": "Policy section 3 (Rules): **R1. Verify before you block on a weak signal.** If the case rests on a single signal (including a risk score alone) and your assessed fraud probability is below 0.70, recommend `VERIFY_WITH_CUSTOMER` or `STEP_UP_AUTH` before any block. Blocking a legitimate customer on one signal is a policy breach. **R2. Customer de",
+        "source": "document",
+        "ref": "policydoc:policy-section-3",
+        "entity_ids": [
+          "policy-section-3"
+        ]
+      },
+      {
+        "claim": "Policy section 3a (A case is not a report): Two different things, and the agent produces both. **A case** (`CREATE_CASE`) is the bank's internal record of an investigation. Open one whenever fraud probability reaches 0.30, whenever you request evidence, or whenever a customer disputes a charge. A case can be closed as fraud or as legitimate. It can be updated wh",
+        "source": "document",
+        "ref": "policydoc:policy-section-3a",
+        "entity_ids": [
+          "policy-section-3a"
+        ]
+      },
+      {
         "claim": "Assumed no reply within 24 hours. Assumption basis: the evidence is genuinely ambiguous at probability 0.43, so neither a denial nor a confirmation can be assumed without inventing facts; policy R4 covers this case.",
         "source": "customer",
         "ref": "evidence_request:1",
@@ -101,14 +133,14 @@
       "CC-2133",
       "CC-2439"
     ],
-    "summary": "Transaction 3450629 ($100.09 online, 2016-11-11) was flagged by model risk score 0.57, occurring as the third in a cluster of three online transactions totalling $300.14 within 48 hours on card C04570-K1. The card profile shows 59 legitimate transactions across 16 regions over five months, establishing normal usage patterns that contrast with this concentrated episode. The device used shares a profile with account C05704, and case memory returned 8 structurally similar closed cases, all confirmed fraud with no false alarms. The pattern matches card_not_present_fraud at strength 0.42, and the internal assessment places fraud probability at 0.43, reflecting genuine ambiguity. Customer validation was requested but no reply was received within 24 hours per policy R4. The evidence points toward fraud given the clustering behavior, device sharing, and prior case memory alignment, but confidence is moderate at 0.43 due to the cardholder's established history of legitimate online and cross-region transactions.",
+    "summary": "Transaction 3450629 ($100.09 online on 2016-11-11 23:46:24) was flagged by model risk score 0.57 and matched the card_not_present_fraud pattern. The graph showed three online transactions totaling $300.14 within 48 hours on card C04570-K1, which is a burst consistent with the pattern. The device profile used was shared with account C05704 and marked as found for this account. Prior closed case memory returned eight structurally similar cases, all confirmed fraud, sharing the device and pattern or region. Customer verification was requested and no reply was received within 24 hours. Despite the strong prior case history and pattern match, the assessed fraud probability of 0.43 falls below the 0.70 threshold, making the signal genuinely ambiguous. Given policy R1 (verify before blocking on weak signals below 0.70 probability), the case warrants monitoring and potential step-up authentication rather than immediate decline. Confidence is moderate: the prior case alignment is compelling, but the probability assessment and single transaction alone do not meet the standard for high-confidence fraud determination.",
     "written_to_graph": true,
     "graph_case_id": "CASE-2016-017"
   },
   "evidence_requests": [
     {
       "type": "customer_validation",
-      "asked_after_step": 4,
+      "asked_after_step": 5,
       "assumed_response": "Assumed no reply within 24 hours. Assumption basis: the evidence is genuinely ambiguous at probability 0.43, so neither a denial nor a confirmation can be assumed without inventing facts; policy R4 covers this case."
     }
   ],
@@ -158,7 +190,7 @@
     "activity_dates": []
   },
   "stop_reason": "Further evidence-gathering would not change the recommended action: the available signals are exhausted and the case is recorded at probability 0.43.",
-  "tool_calls": 7,
-  "tokens": 0,
-  "latency_s": 0
+  "tool_calls": 8,
+  "tokens": 42830,
+  "latency_s": 5.2
 }

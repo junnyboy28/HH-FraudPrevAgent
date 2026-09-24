@@ -16,6 +16,7 @@ import type {
   Txn,
 } from '../tools/evidence-types.js';
 import { detectAllPatterns, type PatternMatch } from '../tools/patterns.js';
+import { PolicyStore } from '../tools/policy-store.js';
 import {
   decideSar,
   decideStop,
@@ -138,6 +139,7 @@ export class CaseOrchestrator {
     private readonly evidence: EvidenceSource,
     private readonly narrator: Narrator,
     private readonly writer: CaseWriter | null = null,
+    private readonly policy: PolicyStore = new PolicyStore(),
   ) {}
 
   private record(state: CaseState, summary: string): void {
@@ -198,6 +200,33 @@ export class CaseOrchestrator {
 
     // --- ASSESSING ---
     const evidence = this.buildEvidence(entry, nb, profile, patterns, similar, linkedFraud, timeline);
+
+    // GraphRAG: the graph evidence just assembled becomes the retrieval query,
+    // so the policy text that comes back is the policy that matches what was
+    // actually found. Retrieved chunks join the bundle as `document` evidence
+    // and are cited by their chunk id.
+    const retrievalQuery = [
+      patterns.map((p) => `${p.pattern} ${p.evidence.map((e) => e.claim).join(' ')}`).join(' '),
+      evidence.map((e) => e.claim).join(' '),
+      entry.triggerText,
+    ].join(' ');
+    const policyChunks = await this.call(() => this.policy.retrieveForEvidence(retrievalQuery, 4));
+    for (const chunk of policyChunks) {
+      evidence.push({
+        claim: `Policy ${chunk.section} (${chunk.title}): ${chunk.text.replace(/\s+/g, ' ').slice(0, 320)}`,
+        source: 'document',
+        ref: `policydoc:${chunk.chunkId}`,
+        entity_ids: [chunk.chunkId],
+      });
+    }
+    if (policyChunks.length > 0) {
+      this.record(
+        'EVIDENCE_GATHERED',
+        `retrieved ${policyChunks.length} policy and pattern chunks from ${this.policy.source} ` +
+          `(${policyChunks.map((c) => c.section).join(', ')})`,
+      );
+    }
+
     let assessment = this.assess(entry, nb.flagged, timeline, profile, patterns, similar, linkedFraud, shared, cohort, 'not_asked');
     this.record(
       'ASSESSING',

@@ -125,6 +125,38 @@
         "entity_ids": [
           "C07987-K2"
         ]
+      },
+      {
+        "claim": "Policy section 3a (A case is not a report): Two different things, and the agent produces both. **A case** (`CREATE_CASE`) is the bank's internal record of an investigation. Open one whenever fraud probability reaches 0.30, whenever you request evidence, or whenever a customer disputes a charge. A case can be closed as fraud or as legitimate. It can be updated wh",
+        "source": "document",
+        "ref": "policydoc:policy-section-3a",
+        "entity_ids": [
+          "policy-section-3a"
+        ]
+      },
+      {
+        "claim": "Policy section 1 (Actions): | Action | What it does | Customer impact | |---|---|---| | `ALLOW_TRANSACTION` | Let the flagged transaction stand | None | | `DECLINE_TRANSACTION` | Decline the flagged authorization only. Card stays active | Low | | `MONITOR_CARD` | Card stays active; raise monitoring sensitivity for 72 hours | None | | `MONITOR_CON",
+        "source": "document",
+        "ref": "policydoc:policy-section-1",
+        "entity_ids": [
+          "policy-section-1"
+        ]
+      },
+      {
+        "claim": "Policy section 3 (Rules): **R1. Verify before you block on a weak signal.** If the case rests on a single signal (including a risk score alone) and your assessed fraud probability is below 0.70, recommend `VERIFY_WITH_CUSTOMER` or `STEP_UP_AUTH` before any block. Blocking a legitimate customer on one signal is a policy breach. **R2. Customer de",
+        "source": "document",
+        "ref": "policydoc:policy-section-3",
+        "entity_ids": [
+          "policy-section-3"
+        ]
+      },
+      {
+        "claim": "Policy card_not_present_new_device (Card-not-present fraud from a new device): Same as above, with the identity record marking the device as `New` for this account, sometimes behind a proxy. Stronger than pattern 2, still not proof: people buy new phones.",
+        "source": "document",
+        "ref": "policydoc:pattern-card_not_present_new_device",
+        "entity_ids": [
+          "pattern-card_not_present_new_device"
+        ]
       }
     ],
     "similar_prior_cases": [
@@ -137,7 +169,7 @@
       "CC-5301",
       "CC-0291"
     ],
-    "summary": "Transaction 3503878 for $99.92 online was flagged by the model with a score of 0.9 as part of a seven-transaction episode totaling $816.62 occurring between 2016-11-28 and 2016-12-04 across multiple billing regions. The device profile for this transaction is marked new to the account and is shared with account C07727. The account shows a history of geographic and channel diversity with 248 transactions across 33 regions, but carries three prior confirmed-fraud cases (two out-of-region use, one card-not-present). Case memory identified eight structurally similar closed cases retrieved by shared device, matching pattern, and matching region, all eight of which were confirmed fraud with no false alarms, including cases with account takeover patterns and exposures ranging from $98.01 to $1835.06. The assessment flags account takeover as the suspected pattern with fraud probability 0.62. This is genuine fraud with high confidence. The evidence supporting this conclusion is strong: the device sharing with another account, the multiple prior fraud cases on this customer, the uniform confirmation rate of similar cases in memory, and the episode pattern all point to account compromise. The one mild limitation is that the assessment itself rates confidence as uncertain, though this appears to reflect the inherent ambiguity in distinguishing account takeover from legitimate but unusual activity rather than contradicting the case evidence.",
+    "summary": "Transaction 3503878 ($99.92, online, product code R) on card C07987-K2 triggered review at model risk score 0.9 as part of a seven-transaction episode totaling $816.62 across four days. The episode occurred from a device profile marked New to this account and shared with another account (C07727), which is consistent with account takeover patterns. The account has three prior confirmed fraud cases (out-of-region use and card-not-present fraud) and billing activity across 33 regions. Case memory returned eight structurally similar closed cases; all eight were confirmed fraud with no false alarms, all matching on shared device, account takeover pattern, and billing region. The cardholder's baseline is 248 lifetime transactions predominantly in-person and online at median $110.94. The assessed fraud probability is 0.62 with pattern confidence at 0.50. Given the strong historical precedent (8 of 8 similar cases confirmed fraud), the new device marker, the shared device link, and the prior fraud history, the evidence supports account takeover. However, fraud probability of 0.62 falls below the 0.70 threshold for block-without-verification per policy R1. Recommend VERIFY_WITH_CUSTOMER before any decline, as the case rests partly on device novelty which policy notes does not constitute proof. Confidence in fraud is moderately high but verification is required by policy.",
     "written_to_graph": true,
     "graph_case_id": "CASE-2016-019"
   },
@@ -188,7 +220,7 @@
     "activity_dates": []
   },
   "stop_reason": "Further evidence-gathering would not change the recommended action: the available signals are exhausted and the case is recorded at probability 0.62.",
-  "tool_calls": 7,
-  "tokens": 0,
-  "latency_s": 0
+  "tool_calls": 8,
+  "tokens": 46873,
+  "latency_s": 6.4
 }

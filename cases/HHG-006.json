@@ -99,6 +99,38 @@
         "entity_ids": [
           "C07297-K1"
         ]
+      },
+      {
+        "claim": "Policy section 3a (A case is not a report): Two different things, and the agent produces both. **A case** (`CREATE_CASE`) is the bank's internal record of an investigation. Open one whenever fraud probability reaches 0.30, whenever you request evidence, or whenever a customer disputes a charge. A case can be closed as fraud or as legitimate. It can be updated wh",
+        "source": "document",
+        "ref": "policydoc:policy-section-3a",
+        "entity_ids": [
+          "policy-section-3a"
+        ]
+      },
+      {
+        "claim": "Policy section 1 (Actions): | Action | What it does | Customer impact | |---|---|---| | `ALLOW_TRANSACTION` | Let the flagged transaction stand | None | | `DECLINE_TRANSACTION` | Decline the flagged authorization only. Card stays active | Low | | `MONITOR_CARD` | Card stays active; raise monitoring sensitivity for 72 hours | None | | `MONITOR_CON",
+        "source": "document",
+        "ref": "policydoc:policy-section-1",
+        "entity_ids": [
+          "policy-section-1"
+        ]
+      },
+      {
+        "claim": "Policy card_not_present_fraud (Card-not-present fraud): The number is used online without the card. Amounts and products that don't fit the cardholder's history, often in a burst of two to four within 48 hours. On its own, one unusual online purchase is ambiguous: verify. Policy R1 to R4.",
+        "source": "document",
+        "ref": "policydoc:pattern-card_not_present_fraud",
+        "entity_ids": [
+          "pattern-card_not_present_fraud"
+        ]
+      },
+      {
+        "claim": "Policy section 3 (Rules): **R1. Verify before you block on a weak signal.** If the case rests on a single signal (including a risk score alone) and your assessed fraud probability is below 0.70, recommend `VERIFY_WITH_CUSTOMER` or `STEP_UP_AUTH` before any block. Blocking a legitimate customer on one signal is a policy breach. **R2. Customer de",
+        "source": "document",
+        "ref": "policydoc:policy-section-3",
+        "entity_ids": [
+          "policy-section-3"
+        ]
       }
     ],
     "similar_prior_cases": [
@@ -111,7 +143,7 @@
       "CC-0710",
       "CC-0878"
     ],
-    "summary": "Customer C07297 reported transaction 3476682 for $482.12 as unauthorized. The transaction was online on 2016-11-21 at 20:30:00 using a device profile marked as new to the account. The graph evidence showed four online transactions totaling $1906.07 within a 30-minute window on the same date, with the flagged transaction representing over four times the cardholder's median transaction amount of $58.98 across 261 prior transactions. Eight structurally similar prior closed cases were retrieved from case memory, all eight confirmed as fraud with the card_not_present_new_device pattern in the same region. The pattern match strength is 0.73. I conclude this transaction is fraudulent with high confidence of 0.85, driven by the combination of customer denial, atypical transaction size and velocity, new device usage, and consistent pattern history in this region.",
+    "summary": "Customer C07297 reported transaction 3476682 for $482.12 as unauthorized. The flagged transaction was an online purchase on 2016-11-21 at 20:30:00 using a device marked new to the account. Within 48 hours, four online transactions totalling $1906.07 were processed, with the flagged transaction being more than four times the cardholder's median transaction amount of $58.98 across 261 prior transactions. Prior closed cases matching the card-not-present-new-device pattern in the same region showed 8 confirmed fraud cases and 0 false alarms. The assessment fraud probability reached 0.85, driven by the pattern of multiple unusual-sized card-not-present transactions on a new device. I conclude this is fraud with high confidence and recommend immediate card block.",
     "written_to_graph": true,
     "graph_case_id": "CASE-2016-006"
   },
@@ -156,7 +188,7 @@
   "sar": {
     "file": true,
     "reason": "R2: confirmed or strongly suspected fraud with exposure of $1906.07, above the $1,000 threshold",
-    "narrative": "Customer C07297 reported that a $482.12 online transaction (transaction 3476682) on card C07297-K1 was unauthorized. The transaction occurred on November 21, 2016 at 20:30:00 in billing region 264.0 for product code C. The device used in this transaction was identified as new to the account: Trident/7.0 Windows 7 Internet Explorer 11.0 running at 1920x1080 resolution on a desktop.\n\nThe suspicious activity consisted of four rapid online transactions on card C07297-K1 within a 30-minute window on November 21, 2016, beginning at 20:00:00 and concluding at 20:30:00. These four transactions totaled $1906.07: $478.95, $456.96, $488.04, and $482.12. The flagged transaction of $482.12 is more than four times the cardholder's median transaction amount of $58.98 based on a history of 261 transactions over the preceding six months across 37 billing regions.\n\nThe activity pattern matches card-not-present fraud using a new device at strength 0.73. Eight structurally similar cases retrieved from closed case memory in the same region were all confirmed fraud, with no false alarms. The total suspicious exposure identified is $1906.07 across the four-transaction episode. The bank has blocked the card and created an automated case with a recommendation to file a suspicious activity report.",
+    "narrative": "Customer C07297 reported that a $482.12 online purchase on card C07297-K1 on November 21, 2016 at 20:30 was unauthorized. The transaction used a device profile (Trident/7.0, Windows 7, IE 11.0, 1920x1080) marked as new to the account. The flagged transaction was one of four online purchases totaling $1906.07 made on this card within a 30-minute window on November 21, 2016, between 20:00 and 20:30. All four transactions were conducted online for product code C billing in region 264.0. The cardholder's transaction history from July 2016 through December 2016 shows 261 transactions across 37 billing regions with a median amount of $58.98, making the flagged transaction and its three companions substantially larger than typical purchase behavior. The $482.12 transaction alone is more than four times the cardholder's median transaction amount. The pattern of multiple large online transactions from a new device within a compressed timeframe matches the card-not-present fraud typology, and case memory returned eight structurally similar prior cases from the same region and pattern, all eight of which were confirmed as fraud. The internal fraud assessment reached a probability of 0.85 with a confirmed fraud verdict. The total suspicious amount in this episode is $1906.07. The bank has blocked the card, created a case record, and filed this suspicious activity report.",
     "subjects": [
       "C07297",
       "C07297-K1"
@@ -167,8 +199,8 @@
       "2016-11-21"
     ]
   },
-  "stop_reason": "Fraud probability 0.85 is at or above 0.85 with 4 independent pieces of evidence, which policy section 6 treats as sufficient to act.",
-  "tool_calls": 7,
-  "tokens": 0,
-  "latency_s": 0
+  "stop_reason": "Fraud probability 0.85 is at or above 0.85 with 8 independent pieces of evidence, which policy section 6 treats as sufficient to act.",
+  "tool_calls": 8,
+  "tokens": 15473,
+  "latency_s": 9.2
 }

@@ -95,6 +95,38 @@
         "entity_ids": [
           "C11891-K1"
         ]
+      },
+      {
+        "claim": "Policy out_of_region_use (Out-of-region use): Card-present purchases in a billing region the cardholder has no history in, while their normal activity continues at home. Several days of purchases in one new region is a trip, not a clone. Policy R2, R3.",
+        "source": "document",
+        "ref": "policydoc:pattern-out_of_region_use",
+        "entity_ids": [
+          "pattern-out_of_region_use"
+        ]
+      },
+      {
+        "claim": "Policy section 3a (A case is not a report): Two different things, and the agent produces both. **A case** (`CREATE_CASE`) is the bank's internal record of an investigation. Open one whenever fraud probability reaches 0.30, whenever you request evidence, or whenever a customer disputes a charge. A case can be closed as fraud or as legitimate. It can be updated wh",
+        "source": "document",
+        "ref": "policydoc:policy-section-3a",
+        "entity_ids": [
+          "policy-section-3a"
+        ]
+      },
+      {
+        "claim": "Policy section 1 (Actions): | Action | What it does | Customer impact | |---|---|---| | `ALLOW_TRANSACTION` | Let the flagged transaction stand | None | | `DECLINE_TRANSACTION` | Decline the flagged authorization only. Card stays active | Low | | `MONITOR_CARD` | Card stays active; raise monitoring sensitivity for 72 hours | None | | `MONITOR_CON",
+        "source": "document",
+        "ref": "policydoc:policy-section-1",
+        "entity_ids": [
+          "policy-section-1"
+        ]
+      },
+      {
+        "claim": "Policy card_not_present_fraud (Card-not-present fraud): The number is used online without the card. Amounts and products that don't fit the cardholder's history, often in a burst of two to four within 48 hours. On its own, one unusual online purchase is ambiguous: verify. Policy R1 to R4.",
+        "source": "document",
+        "ref": "policydoc:pattern-card_not_present_fraud",
+        "entity_ids": [
+          "pattern-card_not_present_fraud"
+        ]
       }
     ],
     "similar_prior_cases": [
@@ -107,7 +139,7 @@
       "CC-0218",
       "CC-0227"
     ],
-    "summary": "Transaction 3478782 for $292.36 online was flagged by the model at risk score 0.79 and matches the card_not_present_fraud pattern at strength 0.42. The transaction is 4.1 times the cardholder's median of $36.98 across 44 prior transactions, representing an unusually large purchase for this account. This cardholder has one prior confirmed card_not_present_fraud case (CC-4160), and case memory retrieved eight structurally similar closed cases via shared device link, all eight of which were confirmed fraud with no false alarms. The transaction shares device origin with another cardholder's confirmed fraud. While the fraud probability assessment of 0.53 indicates genuine uncertainty, the combination of pattern match, transaction size deviation, account history, and eight prior confirmed frauds on the same device strongly suggests fraudulent activity. Confidence is high (approximately 80 percent) pending cardholder confirmation of the transaction.",
+    "summary": "Transaction 3478782 for $292.36 online was flagged by the model at score 0.79 and matches the card_not_present_fraud pattern at strength 0.42. The transaction is notably unusual for this cardholder: at $292.36, it exceeds the median transaction amount of $36.98 by more than four times across the account's 44-transaction history. The account has one prior confirmed card-not-present fraud case (CC-4160) and shares a device with another cardholder who committed confirmed fraud. Prior case memory retrieved 8 structurally similar closed cases filtered by shared device and pattern match, all 8 of which were confirmed fraud with no false alarms. The fraud probability assessment stands at 0.53 with verdict uncertain, and the policy on card-not-present fraud calls for verification when a single unusual online purchase occurs without additional context such as a burst pattern. Based on the transaction anomaly relative to baseline spending, the shared device connection to prior fraud, and the 100 percent fraud confirmation rate among structurally similar prior cases, the evidence supports moderate confidence in fraud, though the absence of a rapid transaction burst leaves some ambiguity. A case has been opened for investigation with connected cards placed under monitoring.",
     "written_to_graph": true,
     "graph_case_id": "CASE-2016-002"
   },
@@ -148,7 +180,7 @@
     "activity_dates": []
   },
   "stop_reason": "Further evidence-gathering would not change the recommended action: the available signals are exhausted and the case is recorded at probability 0.53.",
-  "tool_calls": 6,
-  "tokens": 0,
-  "latency_s": 0
+  "tool_calls": 7,
+  "tokens": 3496,
+  "latency_s": 5.9
 }

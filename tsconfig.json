@@ -25,7 +25,8 @@
   "include": [
     "src/**/*.ts",
     "benchmarks/**/*.ts",
-    "graph/**/*.ts"
+    "graph/**/*.ts",
+    "scripts/**/*.ts"
   ],
   "exclude": [
     "node_modules",

@@ -89,6 +89,38 @@
         "entity_ids": [
           "C12265-K2"
         ]
+      },
+      {
+        "claim": "Policy section 3a (A case is not a report): Two different things, and the agent produces both. **A case** (`CREATE_CASE`) is the bank's internal record of an investigation. Open one whenever fraud probability reaches 0.30, whenever you request evidence, or whenever a customer disputes a charge. A case can be closed as fraud or as legitimate. It can be updated wh",
+        "source": "document",
+        "ref": "policydoc:policy-section-3a",
+        "entity_ids": [
+          "policy-section-3a"
+        ]
+      },
+      {
+        "claim": "Policy section 3 (Rules): **R1. Verify before you block on a weak signal.** If the case rests on a single signal (including a risk score alone) and your assessed fraud probability is below 0.70, recommend `VERIFY_WITH_CUSTOMER` or `STEP_UP_AUTH` before any block. Blocking a legitimate customer on one signal is a policy breach. **R2. Customer de",
+        "source": "document",
+        "ref": "policydoc:policy-section-3",
+        "entity_ids": [
+          "policy-section-3"
+        ]
+      },
+      {
+        "claim": "Policy card_not_present_new_device (Card-not-present fraud from a new device): Same as above, with the identity record marking the device as `New` for this account, sometimes behind a proxy. Stronger than pattern 2, still not proof: people buy new phones.",
+        "source": "document",
+        "ref": "policydoc:pattern-card_not_present_new_device",
+        "entity_ids": [
+          "pattern-card_not_present_new_device"
+        ]
+      },
+      {
+        "claim": "Policy section 1 (Actions): | Action | What it does | Customer impact | |---|---|---| | `ALLOW_TRANSACTION` | Let the flagged transaction stand | None | | `DECLINE_TRANSACTION` | Decline the flagged authorization only. Card stays active | Low | | `MONITOR_CARD` | Card stays active; raise monitoring sensitivity for 72 hours | None | | `MONITOR_CON",
+        "source": "document",
+        "ref": "policydoc:policy-section-1",
+        "entity_ids": [
+          "policy-section-1"
+        ]
       }
     ],
     "similar_prior_cases": [
@@ -101,7 +133,7 @@
       "CC-0710",
       "CC-0878"
     ],
-    "summary": "Transaction 3509359 for $125.08 was flagged by the model at score 0.52 for a card-not-present online purchase using a device marked new to the account and a product code never used before on this account. The graph evidence shows the cardholder has an established history of 112 transactions with a median of $94.53, but the current transaction deviates by using an unfamiliar device and product type. Prior closed cases are highly predictive: all 8 structurally similar cases retrieved were confirmed fraud, all matching the same card-not-present-new-device pattern in the same billing region, with exposures ranging from $74.92 to $1500.10. This account also carries a history of 2 prior account takeover cases. Given the pattern strength of 0.57, the perfect confirmation rate in comparable cases, the new device marker, and the product code novelty, fraud probability is assessed at 0.65 with high confidence. The case warrants fraud closure and card monitoring.",
+    "summary": "Transaction 3509359 ($125.08 online on 2016-12-03) was flagged by the model at score 0.52 and matches the card_not_present_new_device pattern at strength 0.57, involving a device marked new to the account. The cardholder's transaction history shows 112 prior transactions with median amount $94.53, and this is the first use of product code R on the account. Prior case memory returned 8 structurally similar closed cases from the same pattern and region, all 8 confirmed as fraud. The account itself has 2 prior confirmed-fraud cases involving account takeover. However, the case rests primarily on the new device signal combined with the pattern match, and fraud probability is assessed at 0.65, which falls below the 0.70 threshold for blocking without verification. Per policy, verification with the customer or step-up authentication is required before any block decision. The new device alone, while notable, does not constitute proof of fraud, and proceeding to block on this signal would risk declining a legitimate transaction. I recommend MONITOR_CARD for 72 hours and verification of the transaction with the cardholder before determining whether to allow or decline, given the elevated but uncertain fraud probability.",
     "written_to_graph": true,
     "graph_case_id": "CASE-2016-020"
   },
@@ -142,7 +174,7 @@
     "activity_dates": []
   },
   "stop_reason": "Further evidence-gathering would not change the recommended action: the available signals are exhausted and the case is recorded at probability 0.65.",
-  "tool_calls": 7,
-  "tokens": 0,
-  "latency_s": 0
+  "tool_calls": 8,
+  "tokens": 48806,
+  "latency_s": 5.7
 }

@@ -89,6 +89,38 @@
         ]
       },
       {
+        "claim": "Policy section 3a (A case is not a report): Two different things, and the agent produces both. **A case** (`CREATE_CASE`) is the bank's internal record of an investigation. Open one whenever fraud probability reaches 0.30, whenever you request evidence, or whenever a customer disputes a charge. A case can be closed as fraud or as legitimate. It can be updated wh",
+        "source": "document",
+        "ref": "policydoc:policy-section-3a",
+        "entity_ids": [
+          "policy-section-3a"
+        ]
+      },
+      {
+        "claim": "Policy section 3 (Rules): **R1. Verify before you block on a weak signal.** If the case rests on a single signal (including a risk score alone) and your assessed fraud probability is below 0.70, recommend `VERIFY_WITH_CUSTOMER` or `STEP_UP_AUTH` before any block. Blocking a legitimate customer on one signal is a policy breach. **R2. Customer de",
+        "source": "document",
+        "ref": "policydoc:policy-section-3",
+        "entity_ids": [
+          "policy-section-3"
+        ]
+      },
+      {
+        "claim": "Policy section 1 (Actions): | Action | What it does | Customer impact | |---|---|---| | `ALLOW_TRANSACTION` | Let the flagged transaction stand | None | | `DECLINE_TRANSACTION` | Decline the flagged authorization only. Card stays active | Low | | `MONITOR_CARD` | Card stays active; raise monitoring sensitivity for 72 hours | None | | `MONITOR_CON",
+        "source": "document",
+        "ref": "policydoc:policy-section-1",
+        "entity_ids": [
+          "policy-section-1"
+        ]
+      },
+      {
+        "claim": "Policy card_not_present_fraud (Card-not-present fraud): The number is used online without the card. Amounts and products that don't fit the cardholder's history, often in a burst of two to four within 48 hours. On its own, one unusual online purchase is ambiguous: verify. Policy R1 to R4.",
+        "source": "document",
+        "ref": "policydoc:pattern-card_not_present_fraud",
+        "entity_ids": [
+          "pattern-card_not_present_fraud"
+        ]
+      },
+      {
         "claim": "Assumed confirmation. The cardholder recognises the transaction. Assumption basis: the activity fits this cardholder's established history and the evidence supports fraud only at probability 0.30.",
         "source": "customer",
         "ref": "evidence_request:1",
@@ -107,14 +139,14 @@
       "CC-5555",
       "CC-0016"
     ],
-    "summary": "Customer C08623 reported a $49.00 in-person transaction (3530164) on 2016-12-10 as unauthorized. The customer's account history shows 1140 transactions across 53 billing regions over six months, establishing a pattern of diverse activity, and this transaction falls within the median spending range of $68.01. The account has 5 prior confirmed-fraud cases, and graph analysis retrieved 8 similar closed cases all confirmed as fraud, retrieved by shared device and region overlap. However, the bank's model risk score of 0.4 is moderate, not conclusive, and when customer validation was requested the cardholder confirmed recognizing the transaction and stated it fits established account patterns. The fraud probability assessment is 0.10 with verdict legitimate and no pattern match. Given the customer's own confirmation and the low fraud probability despite concerning prior history, I conclude this transaction is legitimate with moderate confidence. The shared device overlap with prior cases warrants monitoring but does not override the cardholder's direct recognition of this specific charge.",
+    "summary": "Customer C08623 reported the $49.00 in-person transaction 3530164 on 2016-12-10 as unauthorized. The account carries substantial fraud history with 4 prior confirmed-fraud cases, and graph analysis identified 8 structurally similar closed cases retrieved by shared device and region, all confirmed as fraud. However, the flagged transaction itself fits the cardholder's established pattern (1140 transactions across 53 regions with median $68.01) and carries a low model risk score of 0.4. Customer verification was requested and confirmed the cardholder recognizes the transaction as legitimate activity consistent with their history. With fraud probability assessed at 0.10 and customer confirmation received, the evidence supports closure as legitimate, though the account's elevated fraud history warrants continued monitoring.",
     "written_to_graph": true,
     "graph_case_id": "CASE-2016-003"
   },
   "evidence_requests": [
     {
       "type": "customer_validation",
-      "asked_after_step": 4,
+      "asked_after_step": 5,
       "assumed_response": "Assumed confirmation. The cardholder recognises the transaction. Assumption basis: the activity fits this cardholder's established history and the evidence supports fraud only at probability 0.30."
     }
   ],
@@ -158,8 +190,8 @@
     "total_amount_usd": 0,
     "activity_dates": []
   },
-  "stop_reason": "Fraud probability 0.10 is at or below 0.15 with 6 independent pieces of evidence, so the alert is resolved as legitimate.",
-  "tool_calls": 6,
-  "tokens": 0,
-  "latency_s": 0
+  "stop_reason": "Fraud probability 0.10 is at or below 0.15 with 10 independent pieces of evidence, so the alert is resolved as legitimate.",
+  "tool_calls": 7,
+  "tokens": 5297,
+  "latency_s": 5.7
 }

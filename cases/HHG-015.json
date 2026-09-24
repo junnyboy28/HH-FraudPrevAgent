@@ -106,6 +106,38 @@
         "entity_ids": [
           "C03042-K1"
         ]
+      },
+      {
+        "claim": "Policy section 3a (A case is not a report): Two different things, and the agent produces both. **A case** (`CREATE_CASE`) is the bank's internal record of an investigation. Open one whenever fraud probability reaches 0.30, whenever you request evidence, or whenever a customer disputes a charge. A case can be closed as fraud or as legitimate. It can be updated wh",
+        "source": "document",
+        "ref": "policydoc:policy-section-3a",
+        "entity_ids": [
+          "policy-section-3a"
+        ]
+      },
+      {
+        "claim": "Policy section 1 (Actions): | Action | What it does | Customer impact | |---|---|---| | `ALLOW_TRANSACTION` | Let the flagged transaction stand | None | | `DECLINE_TRANSACTION` | Decline the flagged authorization only. Card stays active | Low | | `MONITOR_CARD` | Card stays active; raise monitoring sensitivity for 72 hours | None | | `MONITOR_CON",
+        "source": "document",
+        "ref": "policydoc:policy-section-1",
+        "entity_ids": [
+          "policy-section-1"
+        ]
+      },
+      {
+        "claim": "Policy section 3 (Rules): **R1. Verify before you block on a weak signal.** If the case rests on a single signal (including a risk score alone) and your assessed fraud probability is below 0.70, recommend `VERIFY_WITH_CUSTOMER` or `STEP_UP_AUTH` before any block. Blocking a legitimate customer on one signal is a policy breach. **R2. Customer de",
+        "source": "document",
+        "ref": "policydoc:policy-section-3",
+        "entity_ids": [
+          "policy-section-3"
+        ]
+      },
+      {
+        "claim": "Policy card_not_present_new_device (Card-not-present fraud from a new device): Same as above, with the identity record marking the device as `New` for this account, sometimes behind a proxy. Stronger than pattern 2, still not proof: people buy new phones.",
+        "source": "document",
+        "ref": "policydoc:pattern-card_not_present_new_device",
+        "entity_ids": [
+          "pattern-card_not_present_new_device"
+        ]
       }
     ],
     "similar_prior_cases": [
@@ -118,7 +150,7 @@
       "CC-0394",
       "CC-0510"
     ],
-    "summary": "Transaction 3464869 ($599.94, online, 2016-11-17) was flagged by the model at 0.77 risk score due to card-not-present activity on a new device. The transaction amount exceeds the cardholder's median of $99.98 by more than fourfold across 79 prior transactions. The device profile (Trident/7.0, Windows 8.1, IE 11, 1680x1050) is marked new for this account and is shared with account C02231. Prior closed cases show a strong pattern: 8 similar cases retrieved by shared device and matching pattern were all confirmed fraud, with no false alarms, and this account has two prior confirmed-fraud cases (CC-0615 and CC-3886) both involving card-not-present transactions on new devices. The evidence strongly supports fraud probability at 0.68 with high confidence. No additional evidence was requested.",
+    "summary": "Transaction 3464869 for $599.94 online was flagged by the model score of 0.77 and matches the card_not_present_new_device pattern, with the device marked new to the account and the transaction amount four times the cardholder's median spend. The account has two prior confirmed-fraud cases on the same pattern, and eight structurally similar closed cases retrieved by shared device were all confirmed fraud with no false alarms. The assessment indicates fraud probability of 0.68 with pattern confidence at 0.57. The evidence is substantial but not conclusive on its own, and policy requires verification before a block when probability is below 0.70 and the case does not rest on multiple independent signals. No additional evidence was requested. I recommend escalation with monitoring and customer verification before declining, as the cardholder's legitimate activity across 79 transactions and multiple regions suggests this could be a high-value purchase rather than fraud, though the risk is clearly elevated at 0.68 probability.",
     "written_to_graph": true,
     "graph_case_id": "CASE-2016-015"
   },
@@ -169,7 +201,7 @@
     "activity_dates": []
   },
   "stop_reason": "Further evidence-gathering would not change the recommended action: the available signals are exhausted and the case is recorded at probability 0.68.",
-  "tool_calls": 7,
-  "tokens": 0,
-  "latency_s": 0
+  "tool_calls": 8,
+  "tokens": 39101,
+  "latency_s": 5
 }

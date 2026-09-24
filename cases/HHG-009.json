@@ -61,6 +61,38 @@
         ]
       },
       {
+        "claim": "Policy section 3a (A case is not a report): Two different things, and the agent produces both. **A case** (`CREATE_CASE`) is the bank's internal record of an investigation. Open one whenever fraud probability reaches 0.30, whenever you request evidence, or whenever a customer disputes a charge. A case can be closed as fraud or as legitimate. It can be updated wh",
+        "source": "document",
+        "ref": "policydoc:policy-section-3a",
+        "entity_ids": [
+          "policy-section-3a"
+        ]
+      },
+      {
+        "claim": "Policy card_not_present_fraud (Card-not-present fraud): The number is used online without the card. Amounts and products that don't fit the cardholder's history, often in a burst of two to four within 48 hours. On its own, one unusual online purchase is ambiguous: verify. Policy R1 to R4.",
+        "source": "document",
+        "ref": "policydoc:pattern-card_not_present_fraud",
+        "entity_ids": [
+          "pattern-card_not_present_fraud"
+        ]
+      },
+      {
+        "claim": "Policy section 1 (Actions): | Action | What it does | Customer impact | |---|---|---| | `ALLOW_TRANSACTION` | Let the flagged transaction stand | None | | `DECLINE_TRANSACTION` | Decline the flagged authorization only. Card stays active | Low | | `MONITOR_CARD` | Card stays active; raise monitoring sensitivity for 72 hours | None | | `MONITOR_CON",
+        "source": "document",
+        "ref": "policydoc:policy-section-1",
+        "entity_ids": [
+          "policy-section-1"
+        ]
+      },
+      {
+        "claim": "Policy section 3 (Rules): **R1. Verify before you block on a weak signal.** If the case rests on a single signal (including a risk score alone) and your assessed fraud probability is below 0.70, recommend `VERIFY_WITH_CUSTOMER` or `STEP_UP_AUTH` before any block. Blocking a legitimate customer on one signal is a policy breach. **R2. Customer de",
+        "source": "document",
+        "ref": "policydoc:policy-section-3",
+        "entity_ids": [
+          "policy-section-3"
+        ]
+      },
+      {
         "claim": "Assumed confirmation. The cardholder recognises the transaction. Assumption basis: the activity fits this cardholder's established history and the evidence supports fraud only at probability 0.22.",
         "source": "customer",
         "ref": "evidence_request:1",
@@ -79,14 +111,14 @@
       "CC-0364",
       "CC-0480"
     ],
-    "summary": "Customer C08299 reported the $30.02 online transaction on 2016-12-28 as unauthorized. The transaction connected to a device that also appeared in 8 prior confirmed fraud cases, all involving account takeover or out-of-region use patterns, creating initial concern. However, the cardholder's account shows normal activity across 56 transactions spanning multiple regions and channels with a median spend of $49.96, and the transaction itself falls within established patterns. Customer verification confirmed the cardholder recognizes the transaction as legitimate, which aligns with the account history and the fraud assessment probability of 0.10. The shared device link suggests past fraud risk but does not establish current fraud given the customer's explicit confirmation and consistent account behavior. I conclude this transaction is legitimate with low confidence in any fraud component, and the case should close without fraud findings.",
+    "summary": "Customer C08299 reported a $30.02 online purchase (transaction 3581141) on 2016-12-28 as unauthorized. The transaction occurred in billing region 203.0 with a model risk score of 0.28. Graph analysis showed the cardholder has 56 transactions across 7 regions over five months with median spend of $49.96, making this single online purchase consistent with established activity patterns. Prior case memory identified 8 structurally similar closed cases retrieved by shared device and region, all confirmed fraud with account takeover patterns, suggesting elevated environmental risk. However, customer verification confirmed the cardholder recognizes this transaction and the fraud assessment calculated probability at 0.10, well below the 0.30 threshold for internal fraud determination. The transaction fits the cardholder's spending history and channels. I conclude this is legitimate activity with low confidence in fraud, driven by customer confirmation against a weak individual signal. The shared device linkage to confirmed fraud cases warrants continued monitoring but does not alter the verdict for this specific transaction.",
     "written_to_graph": true,
     "graph_case_id": "CASE-2016-009"
   },
   "evidence_requests": [
     {
       "type": "customer_validation",
-      "asked_after_step": 4,
+      "asked_after_step": 5,
       "assumed_response": "Assumed confirmation. The cardholder recognises the transaction. Assumption basis: the activity fits this cardholder's established history and the evidence supports fraud only at probability 0.22."
     }
   ],
@@ -130,8 +162,8 @@
     "total_amount_usd": 0,
     "activity_dates": []
   },
-  "stop_reason": "Fraud probability 0.10 is at or below 0.15 with 5 independent pieces of evidence, so the alert is resolved as legitimate.",
-  "tool_calls": 7,
-  "tokens": 0,
-  "latency_s": 0
+  "stop_reason": "Fraud probability 0.10 is at or below 0.15 with 9 independent pieces of evidence, so the alert is resolved as legitimate.",
+  "tool_calls": 8,
+  "tokens": 20676,
+  "latency_s": 5
 }

@@ -64,6 +64,38 @@
         "entity_ids": [
           "C12382-K1"
         ]
+      },
+      {
+        "claim": "Policy section 3a (A case is not a report): Two different things, and the agent produces both. **A case** (`CREATE_CASE`) is the bank's internal record of an investigation. Open one whenever fraud probability reaches 0.30, whenever you request evidence, or whenever a customer disputes a charge. A case can be closed as fraud or as legitimate. It can be updated wh",
+        "source": "document",
+        "ref": "policydoc:policy-section-3a",
+        "entity_ids": [
+          "policy-section-3a"
+        ]
+      },
+      {
+        "claim": "Policy section 1 (Actions): | Action | What it does | Customer impact | |---|---|---| | `ALLOW_TRANSACTION` | Let the flagged transaction stand | None | | `DECLINE_TRANSACTION` | Decline the flagged authorization only. Card stays active | Low | | `MONITOR_CARD` | Card stays active; raise monitoring sensitivity for 72 hours | None | | `MONITOR_CON",
+        "source": "document",
+        "ref": "policydoc:policy-section-1",
+        "entity_ids": [
+          "policy-section-1"
+        ]
+      },
+      {
+        "claim": "Policy section 3 (Rules): **R1. Verify before you block on a weak signal.** If the case rests on a single signal (including a risk score alone) and your assessed fraud probability is below 0.70, recommend `VERIFY_WITH_CUSTOMER` or `STEP_UP_AUTH` before any block. Blocking a legitimate customer on one signal is a policy breach. **R2. Customer de",
+        "source": "document",
+        "ref": "policydoc:policy-section-3",
+        "entity_ids": [
+          "policy-section-3"
+        ]
+      },
+      {
+        "claim": "Policy section 5 (Gathering more evidence): The agent may, without approval, ask the customer to validate a transaction, request step-up authentication, or request information from an analyst. In this round those responses are not provided. Simulate them in your own system and state the assumption you made in the case file's `evidence_requests`.",
+        "source": "document",
+        "ref": "policydoc:policy-section-5",
+        "entity_ids": [
+          "policy-section-5"
+        ]
       }
     ],
     "similar_prior_cases": [
@@ -76,7 +108,7 @@
       "CC-3765",
       "CC-4431"
     ],
-    "summary": "Transaction 3514030 for $77.07 in product code W was flagged by the bank's model with a risk score of 0.61. The cardholder's account shows normal activity patterns with 422 transactions across 40 regions over five months, median transaction size of $82.96, and this in-person transaction on 2016-12-04 is consistent with established behavior. However, the account carries significant fraud history with four prior confirmed-fraud cases involving out-of-region use and card-not-present activity, and case memory returned eight structurally similar closed cases, all confirmed as fraud. Despite this history, the current transaction shows no behavioral anomalies, the amount is typical for the account, and fraud probability assessment is low at 0.18. The transaction is cleared as legitimate with confidence in the assessment.",
+    "summary": "Transaction 3514030 ($77.07, in-person, product code W on 2016-12-04) was flagged by the bank's model at risk score 0.61. The cardholder's transaction history shows 422 transactions across 40 billing regions spanning both in-person and online channels with a median amount of $82.96, indicating this $77.07 in-person transaction is consistent with established spending patterns. The account has 4 prior confirmed-fraud cases (all out-of-region or card-not-present related), and the 8 structurally similar cases retrieved from case memory were all confirmed fraud, suggesting elevated account risk. However, the assessed fraud probability is only 0.18, well below the 0.30 threshold for case creation and the 0.70 threshold that would justify blocking on a single signal. The transaction itself shows no anomalous pattern relative to the account baseline. I am closing this case as legitimate with low confidence in the account's overall security posture, as the prior fraud history and strong case memory signal warrant ongoing monitoring.",
     "written_to_graph": true,
     "graph_case_id": "CASE-2016-001"
   },
@@ -107,7 +139,7 @@
     "activity_dates": []
   },
   "stop_reason": "Further evidence-gathering would not change the recommended action: the available signals are exhausted and the case is recorded at probability 0.18.",
-  "tool_calls": 6,
-  "tokens": 0,
-  "latency_s": 0
+  "tool_calls": 7,
+  "tokens": 1680,
+  "latency_s": 5.9
 }

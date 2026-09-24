@@ -90,6 +90,38 @@
         "entity_ids": [
           "C09933-K2"
         ]
+      },
+      {
+        "claim": "Policy section 3a (A case is not a report): Two different things, and the agent produces both. **A case** (`CREATE_CASE`) is the bank's internal record of an investigation. Open one whenever fraud probability reaches 0.30, whenever you request evidence, or whenever a customer disputes a charge. A case can be closed as fraud or as legitimate. It can be updated wh",
+        "source": "document",
+        "ref": "policydoc:policy-section-3a",
+        "entity_ids": [
+          "policy-section-3a"
+        ]
+      },
+      {
+        "claim": "Policy section 1 (Actions): | Action | What it does | Customer impact | |---|---|---| | `ALLOW_TRANSACTION` | Let the flagged transaction stand | None | | `DECLINE_TRANSACTION` | Decline the flagged authorization only. Card stays active | Low | | `MONITOR_CARD` | Card stays active; raise monitoring sensitivity for 72 hours | None | | `MONITOR_CON",
+        "source": "document",
+        "ref": "policydoc:policy-section-1",
+        "entity_ids": [
+          "policy-section-1"
+        ]
+      },
+      {
+        "claim": "Policy section 3 (Rules): **R1. Verify before you block on a weak signal.** If the case rests on a single signal (including a risk score alone) and your assessed fraud probability is below 0.70, recommend `VERIFY_WITH_CUSTOMER` or `STEP_UP_AUTH` before any block. Blocking a legitimate customer on one signal is a policy breach. **R2. Customer de",
+        "source": "document",
+        "ref": "policydoc:policy-section-3",
+        "entity_ids": [
+          "policy-section-3"
+        ]
+      },
+      {
+        "claim": "Policy section 0 (What the agent starts with): Every transaction carries a `risk_score` between 0 and 1 from the bank's detection model. The model is useful and imperfect: many high scores are legitimate, and some fraud scores low. A score is a reason to look, never a verdict. The only confirmed outcomes are in the closed cases.",
+        "source": "document",
+        "ref": "policydoc:policy-section-0",
+        "entity_ids": [
+          "policy-section-0"
+        ]
       }
     ],
     "similar_prior_cases": [
@@ -102,7 +134,7 @@
       "CC-3093",
       "CC-3607"
     ],
-    "summary": "Transaction 3514948 for $111.92 was flagged by the model risk score of 0.87 on 2016-12-05. The cardholder's transaction history shows normal activity across 32 regions with a median spend of $76.99, and this in-person purchase of product code W in billing region 264.0 is consistent with that baseline. However, account C09933 carries substantial fraud history including 18 prior confirmed-fraud cases dominated by out-of-region use and account takeover patterns, and the device profile shared with this transaction has appeared in 8 structurally similar closed cases, all confirmed fraud. Despite the elevated model score and concerning account history, the current transaction shows no pattern match, zero exposure, and an assessed fraud probability of only 0.18. The legitimate verdict is supported by the transaction's alignment with known spending behavior, though the device link to prior fraud cases represents ongoing risk. Confidence in this legitimate determination is moderate given the historical pattern on the shared device.",
+    "summary": "Transaction 3514948 for $111.92 was flagged by a model risk score of 0.87, but the assessed fraud probability is only 0.18, well below the 0.30 threshold for case creation. The cardholder's history shows 2792 transactions across 32 regions over six months with a median spend of $76.99, consistent with an active legitimate user. The account has prior confirmed fraud cases involving account takeover and out-of-region use, and a device profile tied to this transaction matches 8 structurally similar closed cases, all confirmed fraud. However, the current transaction is in-person in billing region 264.0 with a modest amount aligned to the cardholder's baseline behavior, showing no pattern match. The high-score flagging combined with device profile overlap warrants attention, but the low assessed fraud probability and absence of behavioral deviation indicate this is a legitimate transaction. I am moderately confident in closure without action, though the shared device profile suggests continued monitoring of this card may be prudent.",
     "written_to_graph": true,
     "graph_case_id": "CASE-2016-007"
   },
@@ -133,7 +165,7 @@
     "activity_dates": []
   },
   "stop_reason": "Further evidence-gathering would not change the recommended action: the available signals are exhausted and the case is recorded at probability 0.18.",
-  "tool_calls": 6,
-  "tokens": 0,
-  "latency_s": 0
+  "tool_calls": 7,
+  "tokens": 17203,
+  "latency_s": 5.3
 }

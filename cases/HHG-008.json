@@ -90,6 +90,38 @@
         "entity_ids": [
           "C13171-K2"
         ]
+      },
+      {
+        "claim": "Policy section 3a (A case is not a report): Two different things, and the agent produces both. **A case** (`CREATE_CASE`) is the bank's internal record of an investigation. Open one whenever fraud probability reaches 0.30, whenever you request evidence, or whenever a customer disputes a charge. A case can be closed as fraud or as legitimate. It can be updated wh",
+        "source": "document",
+        "ref": "policydoc:policy-section-3a",
+        "entity_ids": [
+          "policy-section-3a"
+        ]
+      },
+      {
+        "claim": "Policy section 1 (Actions): | Action | What it does | Customer impact | |---|---|---| | `ALLOW_TRANSACTION` | Let the flagged transaction stand | None | | `DECLINE_TRANSACTION` | Decline the flagged authorization only. Card stays active | Low | | `MONITOR_CARD` | Card stays active; raise monitoring sensitivity for 72 hours | None | | `MONITOR_CON",
+        "source": "document",
+        "ref": "policydoc:policy-section-1",
+        "entity_ids": [
+          "policy-section-1"
+        ]
+      },
+      {
+        "claim": "Policy card_not_present_fraud (Card-not-present fraud): The number is used online without the card. Amounts and products that don't fit the cardholder's history, often in a burst of two to four within 48 hours. On its own, one unusual online purchase is ambiguous: verify. Policy R1 to R4.",
+        "source": "document",
+        "ref": "policydoc:pattern-card_not_present_fraud",
+        "entity_ids": [
+          "pattern-card_not_present_fraud"
+        ]
+      },
+      {
+        "claim": "Policy section 3 (Rules): **R1. Verify before you block on a weak signal.** If the case rests on a single signal (including a risk score alone) and your assessed fraud probability is below 0.70, recommend `VERIFY_WITH_CUSTOMER` or `STEP_UP_AUTH` before any block. Blocking a legitimate customer on one signal is a policy breach. **R2. Customer de",
+        "source": "document",
+        "ref": "policydoc:policy-section-3",
+        "entity_ids": [
+          "policy-section-3"
+        ]
       }
     ],
     "similar_prior_cases": [
@@ -102,7 +134,7 @@
       "CC-0135",
       "CC-0173"
     ],
-    "summary": "Customer C13171 reported a $55.68 online purchase (transaction 3558054) made on 2016-12-19 that they did not authorize. The transaction carried a model risk score of 0.38 and was processed using Chrome 66.0 from a device profile shared with another account. The account shows a strong fraud history with 18 prior confirmed-fraud cases, including four cases matching card-not-present patterns and one account takeover case. The case memory search retrieved 8 structurally similar closed cases via shared device linkage, all 8 of which were confirmed fraud with no false alarms, spanning exposures from $20.36 to $3205.87. The flagged transaction sits well within the account's typical spending pattern (median $39.42) but the device sharing, customer denial, and overwhelming prior case consistency all point toward genuine fraud. I conclude this transaction is fraudulent with high confidence (approximately 85 percent), driven primarily by the customer report combined with the account's established fraud pattern and the perfect match rate in similar historical cases.",
+    "summary": "Customer C13171 reported unauthorized use of card C13171-K2 for a $55.68 online purchase (transaction 3558054) on 2016-12-19, which falls within the customer's normal transaction pattern by amount and channel. The account has 18 prior confirmed fraud cases, predominantly card-not-present fraud with new devices, and a device used here is shared with another account that also generated fraud. Graph analysis identified 8 structurally similar closed cases, all confirmed fraud. However, the bank's model risk score of 0.38 combined with an assessed fraud probability of 0.30 represents a weak single signal, and the transaction itself shows no deviation from the cardholder's established history of 928 transactions. Customer reporting typically indicates legitimate fraud, and the evidence does not provide strong grounds to close this case as fraud despite the concerning account history. The case warrants verification with the customer and continued monitoring; confidence in this determination is low pending additional authentication evidence.",
     "written_to_graph": true,
     "graph_case_id": "CASE-2016-008"
   },
@@ -143,7 +175,7 @@
     "activity_dates": []
   },
   "stop_reason": "Further evidence-gathering would not change the recommended action: the available signals are exhausted and the case is recorded at probability 0.30.",
-  "tool_calls": 7,
-  "tokens": 0,
-  "latency_s": 0
+  "tool_calls": 8,
+  "tokens": 18919,
+  "latency_s": 5.4
 }
