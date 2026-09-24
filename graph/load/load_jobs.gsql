@@ -1,0 +1,148 @@
+// Loading job for the HHGOA fraud graph.
+//
+// It reads the normalized CSVs written by graph/load/prepare_data.ts, one file
+// per vertex and edge type, never the raw dataset. Run the prep first:
+//   npm run prep:sample    (first 1,000 transactions)
+//   npm run prep:full      (all 590,742)
+//
+// Every file path below is a placeholder. Supply real paths at run time, which
+// is what graph/load/run_sample.gsql and graph/load/run_full.gsql do, so this
+// one job serves both the sample and the full load.
+//
+// Install with:
+//   gsql -g FraudGraph graph/load/load_jobs.gsql
+//
+// All prepared files are comma separated, have a header row, and quote every
+// field with double quotes, so the USING clause is identical throughout.
+
+USE GRAPH FraudGraph
+
+// Re-installing this file over an existing job fails with "job already exists".
+// Drop it first in that case:
+//   DROP JOB load_fraud_graph
+
+CREATE LOADING JOB load_fraud_graph FOR GRAPH FraudGraph {
+
+  DEFINE FILENAME f_accounts;
+  DEFINE FILENAME f_cards;
+  DEFINE FILENAME f_transactions;
+  DEFINE FILENAME f_devices;
+  DEFINE FILENAME f_email_domains;
+  DEFINE FILENAME f_billing_regions;
+  DEFINE FILENAME f_cases;
+  DEFINE FILENAME f_fraud_patterns;
+
+  DEFINE FILENAME f_owns;
+  DEFINE FILENAME f_made;
+  DEFINE FILENAME f_used_device;
+  DEFINE FILENAME f_purchaser_email;
+  DEFINE FILENAME f_recipient_email;
+  DEFINE FILENAME f_billed_in;
+  DEFINE FILENAME f_next_txn;
+  DEFINE FILENAME f_shared_by;
+  DEFINE FILENAME f_involves;
+  DEFINE FILENAME f_on_card;
+  DEFINE FILENAME f_connected_to;
+  DEFINE FILENAME f_investigates;
+  DEFINE FILENAME f_matches_pattern;
+
+  // --- vertices ---
+
+  LOAD f_accounts TO VERTEX Customer VALUES(
+    $0, $1, $2, $3, $4, $5
+  ) USING SEPARATOR=",", HEADER="false", EOL="\n", QUOTE="double";
+
+  LOAD f_cards TO VERTEX PaymentCard VALUES(
+    $0, $1, $2, $3, $4,
+    $5, $6, $7
+  ) USING SEPARATOR=",", HEADER="false", EOL="\n", QUOTE="double";
+
+  LOAD f_transactions TO VERTEX Transaction VALUES(
+    $0, $1, $2, $3, $4, $5, $6,
+    $7, $8,
+    $9, $10, $11, $12, $13, $14,
+    $15, $16, $17, $18, $19, $20,
+    $21, $22, $23, $24, $25, $26, $27, $28, $29, $30
+  ) USING SEPARATOR=",", HEADER="false", EOL="\n", QUOTE="double";
+
+  LOAD f_devices TO VERTEX DeviceProfile VALUES(
+    $0, $1, $2, $3, $4, $5,
+    $6, $7
+  ) USING SEPARATOR=",", HEADER="false", EOL="\n", QUOTE="double";
+
+  LOAD f_email_domains TO VERTEX EmailDomain VALUES(
+    $0, $1
+  ) USING SEPARATOR=",", HEADER="false", EOL="\n", QUOTE="double";
+
+  LOAD f_billing_regions TO VERTEX BillingRegion VALUES(
+    $0, $1, $2, $3
+  ) USING SEPARATOR=",", HEADER="false", EOL="\n", QUOTE="double";
+
+  LOAD f_cases TO VERTEX FraudCase VALUES(
+    $0, $1, $2, $3, $4, $5,
+    $6, $7, $8, $9, $10,
+    $11, $12, $13,
+    $14, $15, $16, $17
+  ) USING SEPARATOR=",", HEADER="false", EOL="\n", QUOTE="double";
+
+  LOAD f_fraud_patterns TO VERTEX FraudPattern VALUES(
+    $0, $1, $2, $3, $4
+  ) USING SEPARATOR=",", HEADER="false", EOL="\n", QUOTE="double";
+
+  // --- edges ---
+
+  LOAD f_owns TO EDGE OWNS VALUES(
+    $0, $1
+  ) USING SEPARATOR=",", HEADER="false", EOL="\n", QUOTE="double";
+
+  LOAD f_made TO EDGE MADE VALUES(
+    $0, $1
+  ) USING SEPARATOR=",", HEADER="false", EOL="\n", QUOTE="double";
+
+  LOAD f_used_device TO EDGE USED_DEVICE VALUES(
+    $0, $1, $2,
+    $3, $4, $5, $6, $7, $8, $9, $10, $11,
+    $12, $13, $14, $15, $16, $17, $18, $19, $20,
+    $21, $22, $23, $24, $25, $26, $27, $28, $29
+  ) USING SEPARATOR=",", HEADER="false", EOL="\n", QUOTE="double";
+
+  LOAD f_purchaser_email TO EDGE PURCHASER_EMAIL VALUES(
+    $0, $1
+  ) USING SEPARATOR=",", HEADER="false", EOL="\n", QUOTE="double";
+
+  LOAD f_recipient_email TO EDGE RECIPIENT_EMAIL VALUES(
+    $0, $1
+  ) USING SEPARATOR=",", HEADER="false", EOL="\n", QUOTE="double";
+
+  LOAD f_billed_in TO EDGE BILLED_IN VALUES(
+    $0, $1
+  ) USING SEPARATOR=",", HEADER="false", EOL="\n", QUOTE="double";
+
+  LOAD f_next_txn TO EDGE NEXT_TXN VALUES(
+    $0, $1, $2
+  ) USING SEPARATOR=",", HEADER="false", EOL="\n", QUOTE="double";
+
+  LOAD f_shared_by TO EDGE SHARED_BY VALUES(
+    $0, $1, $2, $3, $4
+  ) USING SEPARATOR=",", HEADER="false", EOL="\n", QUOTE="double";
+
+  LOAD f_involves TO EDGE INVOLVES VALUES(
+    $0, $1
+  ) USING SEPARATOR=",", HEADER="false", EOL="\n", QUOTE="double";
+
+  LOAD f_on_card TO EDGE ON_CARD VALUES(
+    $0, $1
+  ) USING SEPARATOR=",", HEADER="false", EOL="\n", QUOTE="double";
+
+  LOAD f_connected_to TO EDGE CONNECTED_TO VALUES(
+    $0, $1
+  ) USING SEPARATOR=",", HEADER="false", EOL="\n", QUOTE="double";
+
+  LOAD f_investigates TO EDGE INVESTIGATES VALUES(
+    $0, $1
+  ) USING SEPARATOR=",", HEADER="false", EOL="\n", QUOTE="double";
+
+  LOAD f_matches_pattern TO EDGE MATCHES_PATTERN VALUES(
+    $0, $1
+  ) USING SEPARATOR=",", HEADER="false", EOL="\n", QUOTE="double";
+}

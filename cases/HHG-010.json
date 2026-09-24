@@ -1,0 +1,173 @@
+{
+  "case_id": "HHG-010",
+  "case": {
+    "status": "closed_fraud",
+    "verdict": "fraud",
+    "fraud_probability": 0.86,
+    "pattern": "card_not_present_new_device",
+    "pattern_description": "",
+    "affected_txn_ids": [
+      "3506725"
+    ],
+    "first_suspicious_txn_id": "3506725",
+    "connected_card_ids": [],
+    "connected_device_profiles": [],
+    "exposure_usd": 1000.03,
+    "evidence": [
+      {
+        "claim": "The flagged transaction is $1000.03 online on 2016-12-02 15:18:27, product code R, billing region 469.0, with the bank's model score at 0.9. The score is an input and not a verdict.",
+        "source": "graph",
+        "ref": "query:getEntityNeighborhood(txn_id=3506725)",
+        "entity_ids": [
+          "3506725",
+          "C10434-K1",
+          "C10434"
+        ]
+      },
+      {
+        "claim": "The cardholder has 36 transactions between 2016-07-06 23:54:46 and 2016-12-26 20:09:00, across 6 billing regions and in_person and online channels, with a median amount of $90.00.",
+        "source": "graph",
+        "ref": "query:getAccountProfile(account_id=C10434)",
+        "entity_ids": [
+          "C10434",
+          "C10434-K1"
+        ]
+      },
+      {
+        "claim": "$1000.03 is more than four times this cardholder's median transaction of $90.00 across 36 transactions",
+        "ref": "query:getAccountProfile(account_id=C10434)",
+        "entityIds": [
+          "3506725"
+        ],
+        "source": "graph",
+        "entity_ids": [
+          "3506725"
+        ]
+      },
+      {
+        "claim": "the identity record marks the device \"Windows | Windows 10 | edge 16.0 | 1366x768\" as New for this account",
+        "ref": "query:getEntityNeighborhood(txn_id=3506725)",
+        "entityIds": [
+          "3506725",
+          "Windows | Windows 10 | edge 16.0 | 1366x768"
+        ],
+        "source": "graph",
+        "entity_ids": [
+          "3506725",
+          "Windows | Windows 10 | edge 16.0 | 1366x768"
+        ]
+      },
+      {
+        "claim": "Case memory returned 8 structurally similar closed cases, of which 8 were confirmed fraud and 0 were cleared as false alarms. Retrieved by same_pattern and same_region.",
+        "source": "graph",
+        "ref": "query:findSimilarClosedCases(account_id=C10434)",
+        "entity_ids": [
+          "CC-0502",
+          "CC-1892",
+          "CC-1899",
+          "CC-4333",
+          "CC-4523",
+          "CC-4741",
+          "CC-5121",
+          "CC-5263"
+        ]
+      },
+      {
+        "claim": "The card carries 36 transactions in total, which is the baseline the pattern checks ran against.",
+        "source": "graph",
+        "ref": "query:getCardTimeline(card_id=C10434-K1)",
+        "entity_ids": [
+          "C10434-K1"
+        ]
+      },
+      {
+        "claim": "Assumed denial. The cardholder states they did not make this transaction and still holds the card. Assumption basis: the graph evidence already supports fraud at probability 0.61 before asking, so a denial is the consistent reply.",
+        "source": "customer",
+        "ref": "evidence_request:1",
+        "entity_ids": [
+          "3506725"
+        ]
+      }
+    ],
+    "similar_prior_cases": [
+      "CC-0502",
+      "CC-1892",
+      "CC-1899",
+      "CC-4333",
+      "CC-4523",
+      "CC-4741",
+      "CC-5121",
+      "CC-5263"
+    ],
+    "summary": "The bank's model scored a $1000.03 online transaction at 0.9 on 2016-12-02 on card C10434-K1. The evidence fits card not present new device: $1000.03 is more than four times this cardholder's median transaction of $90.00 across 36 transactions. the identity record marks the device \"Windows | Windows 10 | edge 16.0 | 1366x768\" as New for this account. Case memory returned 8 similar closed cases (8 confirmed fraud, 0 cleared), including CC-0502, CC-1892, CC-1899. Because the case rested on a weak signal, the cardholder was asked to validate the transaction; the assumed response is recorded in evidence_requests. Assessed fraud probability 0.86, verdict fraud, exposure $1000.03. Recommended: BLOCK_CARD (L1), CREATE_CASE (auto), FILE_REPORT (L2).",
+    "written_to_graph": true,
+    "graph_case_id": "CASE-2016-010"
+  },
+  "evidence_requests": [
+    {
+      "type": "customer_validation",
+      "asked_after_step": 4,
+      "assumed_response": "Assumed denial. The cardholder states they did not make this transaction and still holds the card. Assumption basis: the graph evidence already supports fraud at probability 0.61 before asking, so a denial is the consistent reply."
+    }
+  ],
+  "next_best_actions": {
+    "initial": [
+      {
+        "action": "VERIFY_WITH_CUSTOMER",
+        "route": "auto",
+        "reason": "R1: single signal at probability 0.61, below 0.70"
+      },
+      {
+        "action": "STEP_UP_AUTH",
+        "route": "auto",
+        "reason": "R1: confirm the cardholder before considering any block"
+      },
+      {
+        "action": "ESCALATE_TO_ANALYST",
+        "route": "auto",
+        "reason": "R8: verdict uncertain with exposure of $1000.03 above $500"
+      },
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "R1: case opened per policy section 3a"
+      }
+    ],
+    "final": [
+      {
+        "action": "BLOCK_CARD",
+        "route": "L1",
+        "reason": "R2: cardholder denies making the transaction and still holds the card"
+      },
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "R2: confirmed unauthorized use"
+      },
+      {
+        "action": "FILE_REPORT",
+        "route": "L2",
+        "reason": "R2: exposure of $1000.03 exceeds $1,000"
+      }
+    ],
+    "what_changed": "The assumed customer response added BLOCK_CARD, FILE_REPORT and dropped VERIFY_WITH_CUSTOMER, STEP_UP_AUTH, ESCALATE_TO_ANALYST."
+  },
+  "sar": {
+    "file": true,
+    "reason": "R2: confirmed or strongly suspected fraud with exposure of $1000.03, above the $1,000 threshold",
+    "narrative": "Customer C10434, holder of card C10434-K1, is the subject of this report. On 2016-12-02 15:18:27, a transaction of $1000.03 on that card was identified as suspicious. The activity was card-not-present (online), billed in region 469.0 (country code 87.0), from device profile \"Windows | Windows 10 | edge 16.0 | 1366x768\". The pattern identified is card not present new device. $1000.03 is more than four times this cardholder's median transaction of $90.00 across 36 transactions. The identity record marks the device \"Windows | Windows 10 | edge 16.0 | 1366x768\" as New for this account. Cardholder contact: Assumed denial. The cardholder states they did not make this transaction and still holds the card. Assumption basis: the graph evidence already supports fraud at probability 0.61 before asking, so a denial is the consistent reply. The bank's closed-case history contains structurally similar confirmed fraud: CC-0502 (card_not_present_new_device, $449.97), CC-1892 (card_not_present_new_device, $49.98), CC-1899 (card_not_present_new_device, $99.94). This activity is reported because the assessed fraud probability is 0.86 and the exposure of $1000.03 meets the filing threshold. Total suspicious amount: $1000.03. The bank's detection model scored the flagged transaction at 0.9, which was treated as a reason to investigate rather than as a determination.",
+    "subjects": [
+      "C10434",
+      "C10434-K1"
+    ],
+    "total_amount_usd": 1000.03,
+    "activity_dates": [
+      "2016-12-02",
+      "2016-12-02"
+    ]
+  },
+  "stop_reason": "Fraud probability 0.86 is at or above 0.85 with 5 independent pieces of evidence, which policy section 6 treats as sufficient to act.",
+  "tool_calls": 7,
+  "tokens": 0,
+  "latency_s": 0
+}

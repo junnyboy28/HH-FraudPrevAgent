@@ -1,0 +1,26 @@
+{
+  "name": "hh-fraudprevagent",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Agentic fraud investigation and next-best-action agent on TigerGraph",
+  "type": "module",
+  "engines": {
+    "node": ">=20.11"
+  },
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc --build",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests",
+    "benchmark": "tsx benchmarks/run_benchmark.ts",
+    "prep:sample": "tsx graph/load/prepare_data.ts",
+    "prep:full": "tsx graph/load/prepare_data.ts --full",
+    "validate": "tsx benchmarks/validate_answers.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.4",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.1"
+  }
+}

@@ -1,0 +1,175 @@
+{
+  "case_id": "HHG-015",
+  "case": {
+    "status": "escalated",
+    "verdict": "uncertain",
+    "fraud_probability": 0.68,
+    "pattern": "card_not_present_new_device",
+    "pattern_description": "",
+    "affected_txn_ids": [
+      "3464869"
+    ],
+    "first_suspicious_txn_id": "3464869",
+    "connected_card_ids": [
+      "C02231-K2",
+      "C02231-K1",
+      "C02716-K2",
+      "C02716-K1",
+      "C01909-K2",
+      "C05704-K2",
+      "C01155-K2",
+      "C11227-K2",
+      "C11413-K1",
+      "C05292-K1",
+      "C01154-K1",
+      "C03558-K1",
+      "C07212-K2",
+      "C07212-K1",
+      "C08466-K1"
+    ],
+    "connected_device_profiles": [
+      "Trident/7.0 | Windows 8.1 | ie 11.0 for desktop | 1680x1050"
+    ],
+    "exposure_usd": 599.94,
+    "evidence": [
+      {
+        "claim": "The flagged transaction is $599.94 online on 2016-11-17 14:03:36, product code R, billing region 327.0, with the bank's model score at 0.77. The score is an input and not a verdict.",
+        "source": "graph",
+        "ref": "query:getEntityNeighborhood(txn_id=3464869)",
+        "entity_ids": [
+          "3464869",
+          "C03042-K1",
+          "C03042"
+        ]
+      },
+      {
+        "claim": "The cardholder has 79 transactions between 2016-07-02 21:33:32 and 2016-12-27 19:16:03, across 22 billing regions and online and in_person channels, with a median amount of $99.98.",
+        "source": "graph",
+        "ref": "query:getAccountProfile(account_id=C03042)",
+        "entity_ids": [
+          "C03042",
+          "C03042-K1"
+        ]
+      },
+      {
+        "claim": "$599.94 is more than four times this cardholder's median transaction of $99.98 across 79 transactions",
+        "ref": "query:getAccountProfile(account_id=C03042)",
+        "entityIds": [
+          "3464869"
+        ],
+        "source": "graph",
+        "entity_ids": [
+          "3464869"
+        ]
+      },
+      {
+        "claim": "the identity record marks the device \"Trident/7.0 | Windows 8.1 | ie 11.0 for desktop | 1680x1050\" as New for this account",
+        "ref": "query:getEntityNeighborhood(txn_id=3464869)",
+        "entityIds": [
+          "3464869",
+          "Trident/7.0 | Windows 8.1 | ie 11.0 for desktop | 1680x1050"
+        ],
+        "source": "graph",
+        "entity_ids": [
+          "3464869",
+          "Trident/7.0 | Windows 8.1 | ie 11.0 for desktop | 1680x1050"
+        ]
+      },
+      {
+        "claim": "This account has 2 prior confirmed-fraud case(s) of its own: CC-0615 (card_not_present_new_device), CC-3886 (card_not_present_new_device).",
+        "source": "graph",
+        "ref": "query:findLinkedFraudHistory(account_id=C03042)",
+        "entity_ids": [
+          "CC-0615",
+          "CC-3886"
+        ]
+      },
+      {
+        "claim": "Case memory returned 8 structurally similar closed cases, of which 8 were confirmed fraud and 0 were cleared as false alarms. Retrieved by shared_device and same_pattern.",
+        "source": "graph",
+        "ref": "query:findSimilarClosedCases(account_id=C03042)",
+        "entity_ids": [
+          "CC-0464",
+          "CC-4542",
+          "CC-5116",
+          "CC-0166",
+          "CC-0221",
+          "CC-0249",
+          "CC-0394",
+          "CC-0510"
+        ]
+      },
+      {
+        "claim": "The card carries 79 transactions in total, which is the baseline the pattern checks ran against.",
+        "source": "graph",
+        "ref": "query:getCardTimeline(card_id=C03042-K1)",
+        "entity_ids": [
+          "C03042-K1"
+        ]
+      }
+    ],
+    "similar_prior_cases": [
+      "CC-0464",
+      "CC-4542",
+      "CC-5116",
+      "CC-0166",
+      "CC-0221",
+      "CC-0249",
+      "CC-0394",
+      "CC-0510"
+    ],
+    "summary": "The bank's model scored a $599.94 online transaction at 0.77 on 2016-11-17 on card C03042-K1. The evidence fits card not present new device: $599.94 is more than four times this cardholder's median transaction of $99.98 across 79 transactions. the identity record marks the device \"Trident/7.0 | Windows 8.1 | ie 11.0 for desktop | 1680x1050\" as New for this account. Case memory returned 8 similar closed cases (8 confirmed fraud, 0 cleared), including CC-0464, CC-4542, CC-5116. Assessed fraud probability 0.68, verdict uncertain, exposure $599.94. Recommended: CREATE_CASE (auto), MONITOR_CONNECTED_CARDS (auto), ESCALATE_TO_ANALYST (auto).",
+    "written_to_graph": true,
+    "graph_case_id": "CASE-2016-015"
+  },
+  "evidence_requests": [],
+  "next_best_actions": {
+    "initial": [
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "R6: shared origin identified: a device profile shared with account C02231"
+      },
+      {
+        "action": "MONITOR_CONNECTED_CARDS",
+        "route": "auto",
+        "reason": "R6: cards sharing that origin placed under monitoring"
+      },
+      {
+        "action": "ESCALATE_TO_ANALYST",
+        "route": "auto",
+        "reason": "R8: verdict uncertain with exposure of $599.94 above $500"
+      }
+    ],
+    "final": [
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "R6: shared origin identified: a device profile shared with account C02231"
+      },
+      {
+        "action": "MONITOR_CONNECTED_CARDS",
+        "route": "auto",
+        "reason": "R6: cards sharing that origin placed under monitoring"
+      },
+      {
+        "action": "ESCALATE_TO_ANALYST",
+        "route": "auto",
+        "reason": "R8: verdict uncertain with exposure of $599.94 above $500"
+      }
+    ],
+    "what_changed": "nothing"
+  },
+  "sar": {
+    "file": false,
+    "reason": "R2 and policy 3a: fraud is neither confirmed nor strongly suspected (probability 0.68), so no report is due",
+    "narrative": "",
+    "subjects": [],
+    "total_amount_usd": 0,
+    "activity_dates": []
+  },
+  "stop_reason": "Further evidence-gathering would not change the recommended action: the available signals are exhausted and the case is recorded at probability 0.68.",
+  "tool_calls": 7,
+  "tokens": 0,
+  "latency_s": 0
+}

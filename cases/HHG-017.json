@@ -1,0 +1,164 @@
+{
+  "case_id": "HHG-017",
+  "case": {
+    "status": "open",
+    "verdict": "uncertain",
+    "fraud_probability": 0.43,
+    "pattern": "card_not_present_fraud",
+    "pattern_description": "",
+    "affected_txn_ids": [
+      "3450436",
+      "3450503",
+      "3450629"
+    ],
+    "first_suspicious_txn_id": "3450436",
+    "connected_card_ids": [
+      "C05704-K2",
+      "C10137-K2",
+      "C01109-K2",
+      "C07518-K2",
+      "C02354-K2",
+      "C03019-K2",
+      "C11000-K2",
+      "C06224-K2"
+    ],
+    "connected_device_profiles": [],
+    "exposure_usd": 300.14,
+    "evidence": [
+      {
+        "claim": "The flagged transaction is $100.09 online on 2016-11-11 23:46:24, product code R, billing region 204.0, with the bank's model score at 0.57. The score is an input and not a verdict.",
+        "source": "graph",
+        "ref": "query:getEntityNeighborhood(txn_id=3450629)",
+        "entity_ids": [
+          "3450629",
+          "C04570-K1",
+          "C04570"
+        ]
+      },
+      {
+        "claim": "The cardholder has 59 transactions between 2016-07-17 18:08:09 and 2016-12-25 01:27:48, across 16 billing regions and online and in_person channels, with a median amount of $200.02.",
+        "source": "graph",
+        "ref": "query:getAccountProfile(account_id=C04570)",
+        "entity_ids": [
+          "C04570",
+          "C04570-K1"
+        ]
+      },
+      {
+        "claim": "3 online transactions on this card within 48 hours, totalling $300.14",
+        "ref": "query:getCardTimeline(card_id=C04570-K1)",
+        "entityIds": [
+          "3450436",
+          "3450503",
+          "3450629"
+        ],
+        "source": "graph",
+        "entity_ids": [
+          "3450436",
+          "3450503",
+          "3450629"
+        ]
+      },
+      {
+        "claim": "Case memory returned 8 structurally similar closed cases, of which 8 were confirmed fraud and 0 were cleared as false alarms. Retrieved by shared_device and same_pattern and same_region.",
+        "source": "graph",
+        "ref": "query:findSimilarClosedCases(account_id=C04570)",
+        "entity_ids": [
+          "CC-0289",
+          "CC-0423",
+          "CC-0510",
+          "CC-0732",
+          "CC-1270",
+          "CC-2031",
+          "CC-2133",
+          "CC-2439"
+        ]
+      },
+      {
+        "claim": "The card carries 59 transactions in total, which is the baseline the pattern checks ran against.",
+        "source": "graph",
+        "ref": "query:getCardTimeline(card_id=C04570-K1)",
+        "entity_ids": [
+          "C04570-K1"
+        ]
+      },
+      {
+        "claim": "Assumed no reply within 24 hours. Assumption basis: the evidence is genuinely ambiguous at probability 0.43, so neither a denial nor a confirmation can be assumed without inventing facts; policy R4 covers this case.",
+        "source": "customer",
+        "ref": "evidence_request:1",
+        "entity_ids": [
+          "3450629"
+        ]
+      }
+    ],
+    "similar_prior_cases": [
+      "CC-0289",
+      "CC-0423",
+      "CC-0510",
+      "CC-0732",
+      "CC-1270",
+      "CC-2031",
+      "CC-2133",
+      "CC-2439"
+    ],
+    "summary": "The bank's model scored a $100.09 online transaction at 0.57 on 2016-11-11 on card C04570-K1. The evidence fits card not present fraud: 3 online transactions on this card within 48 hours, totalling $300.14. Case memory returned 8 similar closed cases (8 confirmed fraud, 0 cleared), including CC-0289, CC-0423, CC-0510. Because the case rested on a weak signal, the cardholder was asked to validate the transaction; the assumed response is recorded in evidence_requests. Assessed fraud probability 0.43, verdict uncertain, exposure $300.14. Recommended: MONITOR_CARD (auto), DECLINE_TRANSACTION (L1), CREATE_CASE (auto).",
+    "written_to_graph": true,
+    "graph_case_id": "CASE-2016-017"
+  },
+  "evidence_requests": [
+    {
+      "type": "customer_validation",
+      "asked_after_step": 4,
+      "assumed_response": "Assumed no reply within 24 hours. Assumption basis: the evidence is genuinely ambiguous at probability 0.43, so neither a denial nor a confirmation can be assumed without inventing facts; policy R4 covers this case."
+    }
+  ],
+  "next_best_actions": {
+    "initial": [
+      {
+        "action": "VERIFY_WITH_CUSTOMER",
+        "route": "auto",
+        "reason": "R1: single signal at probability 0.43, below 0.70"
+      },
+      {
+        "action": "STEP_UP_AUTH",
+        "route": "auto",
+        "reason": "R1: confirm the cardholder before considering any block"
+      },
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "R1: case opened per policy section 3a"
+      }
+    ],
+    "final": [
+      {
+        "action": "MONITOR_CARD",
+        "route": "auto",
+        "reason": "R4: no cardholder response within 24 hours"
+      },
+      {
+        "action": "DECLINE_TRANSACTION",
+        "route": "L1",
+        "reason": "R4: decline pending authorizations while unverified"
+      },
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "R1: case opened per policy section 3a"
+      }
+    ],
+    "what_changed": "The assumed customer response added MONITOR_CARD, DECLINE_TRANSACTION and dropped VERIFY_WITH_CUSTOMER, STEP_UP_AUTH."
+  },
+  "sar": {
+    "file": false,
+    "reason": "R2 and policy 3a: fraud is neither confirmed nor strongly suspected (probability 0.43), so no report is due",
+    "narrative": "",
+    "subjects": [],
+    "total_amount_usd": 0,
+    "activity_dates": []
+  },
+  "stop_reason": "Further evidence-gathering would not change the recommended action: the available signals are exhausted and the case is recorded at probability 0.43.",
+  "tool_calls": 7,
+  "tokens": 0,
+  "latency_s": 0
+}

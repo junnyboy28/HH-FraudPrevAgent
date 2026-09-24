@@ -1,0 +1,148 @@
+{
+  "case_id": "HHG-020",
+  "case": {
+    "status": "open",
+    "verdict": "uncertain",
+    "fraud_probability": 0.65,
+    "pattern": "card_not_present_new_device",
+    "pattern_description": "",
+    "affected_txn_ids": [
+      "3509359"
+    ],
+    "first_suspicious_txn_id": "3509359",
+    "connected_card_ids": [],
+    "connected_device_profiles": [],
+    "exposure_usd": 125.08,
+    "evidence": [
+      {
+        "claim": "The flagged transaction is $125.08 online on 2016-12-03 06:04:26, product code R, billing region 264.0, with the bank's model score at 0.52. The score is an input and not a verdict.",
+        "source": "graph",
+        "ref": "query:getEntityNeighborhood(txn_id=3509359)",
+        "entity_ids": [
+          "3509359",
+          "C12265-K2",
+          "C12265"
+        ]
+      },
+      {
+        "claim": "The cardholder has 112 transactions between 2016-07-06 03:27:13 and 2016-12-31 23:04:26, across 1 billing regions and in_person and online channels, with a median amount of $94.53.",
+        "source": "graph",
+        "ref": "query:getAccountProfile(account_id=C12265)",
+        "entity_ids": [
+          "C12265",
+          "C12265-K2",
+          "C12265-K1"
+        ]
+      },
+      {
+        "claim": "product code R has never been used on this account before",
+        "ref": "query:getAccountProfile(account_id=C12265)",
+        "entityIds": [
+          "3509359"
+        ],
+        "source": "graph",
+        "entity_ids": [
+          "3509359"
+        ]
+      },
+      {
+        "claim": "the identity record marks the device \"Trident/7.0 | Windows 10 | ie 11.0 for desktop | 1920x1080\" as New for this account",
+        "ref": "query:getEntityNeighborhood(txn_id=3509359)",
+        "entityIds": [
+          "3509359",
+          "Trident/7.0 | Windows 10 | ie 11.0 for desktop | 1920x1080"
+        ],
+        "source": "graph",
+        "entity_ids": [
+          "3509359",
+          "Trident/7.0 | Windows 10 | ie 11.0 for desktop | 1920x1080"
+        ]
+      },
+      {
+        "claim": "This account has 2 prior confirmed-fraud case(s) of its own: CC-2277 (account_takeover), CC-2447 (account_takeover).",
+        "source": "graph",
+        "ref": "query:findLinkedFraudHistory(account_id=C12265)",
+        "entity_ids": [
+          "CC-2277",
+          "CC-2447"
+        ]
+      },
+      {
+        "claim": "Case memory returned 8 structurally similar closed cases, of which 8 were confirmed fraud and 0 were cleared as false alarms. Retrieved by same_pattern and same_region.",
+        "source": "graph",
+        "ref": "query:findSimilarClosedCases(account_id=C12265)",
+        "entity_ids": [
+          "CC-0059",
+          "CC-0249",
+          "CC-0477",
+          "CC-0519",
+          "CC-0615",
+          "CC-0633",
+          "CC-0710",
+          "CC-0878"
+        ]
+      },
+      {
+        "claim": "The card carries 109 transactions in total, which is the baseline the pattern checks ran against.",
+        "source": "graph",
+        "ref": "query:getCardTimeline(card_id=C12265-K2)",
+        "entity_ids": [
+          "C12265-K2"
+        ]
+      }
+    ],
+    "similar_prior_cases": [
+      "CC-0059",
+      "CC-0249",
+      "CC-0477",
+      "CC-0519",
+      "CC-0615",
+      "CC-0633",
+      "CC-0710",
+      "CC-0878"
+    ],
+    "summary": "The bank's model scored a $125.08 online transaction at 0.52 on 2016-12-03 on card C12265-K2. The evidence fits card not present new device: product code R has never been used on this account before. the identity record marks the device \"Trident/7.0 | Windows 10 | ie 11.0 for desktop | 1920x1080\" as New for this account. Case memory returned 8 similar closed cases (8 confirmed fraud, 0 cleared), including CC-0059, CC-0249, CC-0477. Assessed fraud probability 0.65, verdict uncertain, exposure $125.08. Recommended: CREATE_CASE (auto), MONITOR_CARD (auto).",
+    "written_to_graph": true,
+    "graph_case_id": "CASE-2016-020"
+  },
+  "evidence_requests": [],
+  "next_best_actions": {
+    "initial": [
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "R1: case opened per policy section 3a"
+      },
+      {
+        "action": "MONITOR_CARD",
+        "route": "auto",
+        "reason": "R1: raise monitoring sensitivity while the signal is unresolved"
+      }
+    ],
+    "final": [
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "R1: case opened per policy section 3a"
+      },
+      {
+        "action": "MONITOR_CARD",
+        "route": "auto",
+        "reason": "R1: raise monitoring sensitivity while the signal is unresolved"
+      }
+    ],
+    "what_changed": "nothing"
+  },
+  "sar": {
+    "file": false,
+    "reason": "R2 and policy 3a: fraud is neither confirmed nor strongly suspected (probability 0.65), so no report is due",
+    "narrative": "",
+    "subjects": [],
+    "total_amount_usd": 0,
+    "activity_dates": []
+  },
+  "stop_reason": "Further evidence-gathering would not change the recommended action: the available signals are exhausted and the case is recorded at probability 0.65.",
+  "tool_calls": 7,
+  "tokens": 0,
+  "latency_s": 0
+}

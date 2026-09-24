@@ -1,0 +1,57 @@
+// Returns every transaction on one card in time order, with its device, region
+// and identity signals. This is the backbone of pattern detection: card testing,
+// velocity bursts, out-of-region use and mixed-channel activity are all read off
+// this timeline (EVIDENCE_GATHERED state).
+
+CREATE QUERY getCardTimeline(VERTEX<PaymentCard> card, INT max_txns = 500) FOR GRAPH FraudGraph {
+
+  TYPEDEF TUPLE <
+    STRING txn_id,
+    STRING ts,
+    UINT transaction_dt,
+    DOUBLE amount,
+    STRING product_cd,
+    STRING channel,
+    DOUBLE risk_score,
+    STRING addr1,
+    STRING addr2,
+    STRING p_emaildomain,
+    BOOL has_identity,
+    STRING device_profile,
+    STRING device_new,
+    STRING proxy,
+    STRING match_status
+  > TxnRow;
+
+  ListAccum<TxnRow> @@timeline;
+  SumAccum<INT> @@total;
+
+  seed = {card};
+
+  txns = SELECT t
+         FROM seed:c -(MADE:e)-> Transaction:t
+         ACCUM @@total += 1
+         ORDER BY t.transaction_dt ASC
+         LIMIT max_txns;
+
+  // DeviceProfile and identity signals hang off the USED_DEVICE edge, online only.
+  withDevice = SELECT t
+               FROM txns:t -(USED_DEVICE:e)-> DeviceProfile:d
+               ACCUM @@timeline += TxnRow(
+                 t.txn_id, to_string(t.ts), t.transaction_dt, t.amount,
+                 t.product_cd, t.channel, t.risk_score,
+                 t.addr1, t.addr2, t.p_emaildomain, t.has_identity,
+                 d.device_profile, e.id_15, e.id_23, e.id_34);
+
+  noDevice = SELECT t
+             FROM txns:t
+             WHERE t.has_identity == FALSE
+             ACCUM @@timeline += TxnRow(
+               t.txn_id, to_string(t.ts), t.transaction_dt, t.amount,
+               t.product_cd, t.channel, t.risk_score,
+               t.addr1, t.addr2, t.p_emaildomain, t.has_identity,
+               "", "", "", "");
+
+  PRINT @@timeline AS timeline;
+  PRINT @@total AS total_transactions_on_card;
+}

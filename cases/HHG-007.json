@@ -1,0 +1,139 @@
+{
+  "case_id": "HHG-007",
+  "case": {
+    "status": "closed_legitimate",
+    "verdict": "legitimate",
+    "fraud_probability": 0.18,
+    "pattern": "none",
+    "pattern_description": "",
+    "affected_txn_ids": [],
+    "first_suspicious_txn_id": "",
+    "connected_card_ids": [
+      "C07360-K1",
+      "C00889-K2",
+      "C12961-K2",
+      "C03040-K2",
+      "C00854-K2",
+      "C07518-K2",
+      "C05245-K2",
+      "C03278-K2",
+      "C04965-K2",
+      "C09165-K2",
+      "C01138-K2",
+      "C00969-K2",
+      "C03856-K1",
+      "C04285-K1",
+      "C11143-K1",
+      "C09885-K1",
+      "C01982-K2",
+      "C09800-K2",
+      "C09800-K1",
+      "C06962-K2"
+    ],
+    "connected_device_profiles": [],
+    "exposure_usd": 0,
+    "evidence": [
+      {
+        "claim": "The flagged transaction is $111.92 in_person on 2016-12-05 00:46:14, product code W, billing region 264.0, with the bank's model score at 0.87. The score is an input and not a verdict.",
+        "source": "graph",
+        "ref": "query:getEntityNeighborhood(txn_id=3514948)",
+        "entity_ids": [
+          "3514948",
+          "C09933-K2",
+          "C09933"
+        ]
+      },
+      {
+        "claim": "The cardholder has 2792 transactions between 2016-07-03 00:57:14 and 2016-12-31 23:57:27, across 32 billing regions and in_person and online channels, with a median amount of $76.99.",
+        "source": "graph",
+        "ref": "query:getAccountProfile(account_id=C09933)",
+        "entity_ids": [
+          "C09933",
+          "C09933-K2",
+          "C09933-K1"
+        ]
+      },
+      {
+        "claim": "This account has 18 prior confirmed-fraud case(s) of its own: CC-0104 (out_of_region_use), CC-0765 (out_of_region_use), CC-1228 (account_takeover), CC-1524 (account_takeover).",
+        "source": "graph",
+        "ref": "query:findLinkedFraudHistory(account_id=C09933)",
+        "entity_ids": [
+          "CC-0104",
+          "CC-0765",
+          "CC-1228",
+          "CC-1524",
+          "CC-1682",
+          "CC-2565",
+          "CC-2834",
+          "CC-2986"
+        ]
+      },
+      {
+        "claim": "Case memory returned 8 structurally similar closed cases, of which 8 were confirmed fraud and 0 were cleared as false alarms. Retrieved by shared_device and same_region.",
+        "source": "graph",
+        "ref": "query:findSimilarClosedCases(account_id=C09933)",
+        "entity_ids": [
+          "CC-0519",
+          "CC-1562",
+          "CC-1907",
+          "CC-2010",
+          "CC-2149",
+          "CC-2336",
+          "CC-3093",
+          "CC-3607"
+        ]
+      },
+      {
+        "claim": "The card carries 2788 transactions in total, which is the baseline the pattern checks ran against.",
+        "source": "graph",
+        "ref": "query:getCardTimeline(card_id=C09933-K2)",
+        "entity_ids": [
+          "C09933-K2"
+        ]
+      }
+    ],
+    "similar_prior_cases": [
+      "CC-0519",
+      "CC-1562",
+      "CC-1907",
+      "CC-2010",
+      "CC-2149",
+      "CC-2336",
+      "CC-3093",
+      "CC-3607"
+    ],
+    "summary": "The bank's model scored a $111.92 in_person transaction at 0.87 on 2016-12-05 on card C09933-K2. No documented fraud pattern matched: the transaction sits within this cardholder's established history of amounts, regions and channels, and the card's surrounding activity shows no testing sequence, no burst and no out-of-region use. Case memory returned 8 similar closed cases (8 confirmed fraud, 0 cleared), including CC-0519, CC-1562, CC-1907. Assessed fraud probability 0.18, verdict legitimate. Recommended: CLOSE_NO_FRAUD (auto).",
+    "written_to_graph": true,
+    "graph_case_id": "CASE-2016-007"
+  },
+  "evidence_requests": [],
+  "next_best_actions": {
+    "initial": [
+      {
+        "action": "CLOSE_NO_FRAUD",
+        "route": "auto",
+        "reason": "R1: no pattern evidence found and the signal does not survive review"
+      }
+    ],
+    "final": [
+      {
+        "action": "CLOSE_NO_FRAUD",
+        "route": "auto",
+        "reason": "R1: no pattern evidence found and the signal does not survive review"
+      }
+    ],
+    "what_changed": "nothing"
+  },
+  "sar": {
+    "file": false,
+    "reason": "R2 and policy 3a: fraud is neither confirmed nor strongly suspected (probability 0.18), so no report is due",
+    "narrative": "",
+    "subjects": [],
+    "total_amount_usd": 0,
+    "activity_dates": []
+  },
+  "stop_reason": "Further evidence-gathering would not change the recommended action: the available signals are exhausted and the case is recorded at probability 0.18.",
+  "tool_calls": 6,
+  "tokens": 0,
+  "latency_s": 0
+}

@@ -1,0 +1,149 @@
+{
+  "case_id": "HHG-008",
+  "case": {
+    "status": "open",
+    "verdict": "uncertain",
+    "fraud_probability": 0.3,
+    "pattern": "none",
+    "pattern_description": "",
+    "affected_txn_ids": [],
+    "first_suspicious_txn_id": "",
+    "connected_card_ids": [
+      "C08962-K2",
+      "C04597-K2",
+      "C04597-K1",
+      "C05245-K2",
+      "C13372-K1",
+      "C06988-K1",
+      "C09657-K2",
+      "C05031-K2",
+      "C11444-K1",
+      "C01521-K2",
+      "C05381-K2",
+      "C11923-K2",
+      "C07686-K1",
+      "C04108-K2",
+      "C02147-K2",
+      "C05423-K1",
+      "C08391-K2",
+      "C06947-K2",
+      "C11509-K2",
+      "C06663-K2"
+    ],
+    "connected_device_profiles": [],
+    "exposure_usd": 0,
+    "evidence": [
+      {
+        "claim": "The flagged transaction is $55.68 online on 2016-12-19 22:08:56, product code C, billing region unrecorded, with the bank's model score at 0.38. The score is an input and not a verdict.",
+        "source": "graph",
+        "ref": "query:getEntityNeighborhood(txn_id=3558054)",
+        "entity_ids": [
+          "3558054",
+          "C13171-K2",
+          "C13171"
+        ]
+      },
+      {
+        "claim": "The cardholder has 928 transactions between 2016-07-02 00:42:31 and 2016-12-29 17:50:55, across 12 billing regions and online and in_person channels, with a median amount of $39.42.",
+        "source": "graph",
+        "ref": "query:getAccountProfile(account_id=C13171)",
+        "entity_ids": [
+          "C13171",
+          "C13171-K2",
+          "C13171-K1"
+        ]
+      },
+      {
+        "claim": "This account has 18 prior confirmed-fraud case(s) of its own: CC-0056 (card_not_present_new_device), CC-0467 (card_not_present_new_device), CC-0772 (card_not_present_new_device), CC-1293 (card_not_present_fraud).",
+        "source": "graph",
+        "ref": "query:findLinkedFraudHistory(account_id=C13171)",
+        "entity_ids": [
+          "CC-0056",
+          "CC-0467",
+          "CC-0772",
+          "CC-1293",
+          "CC-1715",
+          "CC-1925",
+          "CC-2059",
+          "CC-2244"
+        ]
+      },
+      {
+        "claim": "Case memory returned 8 structurally similar closed cases, of which 8 were confirmed fraud and 0 were cleared as false alarms. Retrieved by shared_device.",
+        "source": "graph",
+        "ref": "query:findSimilarClosedCases(account_id=C13171)",
+        "entity_ids": [
+          "CC-0031",
+          "CC-0071",
+          "CC-0073",
+          "CC-0097",
+          "CC-0115",
+          "CC-0118",
+          "CC-0135",
+          "CC-0173"
+        ]
+      },
+      {
+        "claim": "The card carries 927 transactions in total, which is the baseline the pattern checks ran against.",
+        "source": "graph",
+        "ref": "query:getCardTimeline(card_id=C13171-K2)",
+        "entity_ids": [
+          "C13171-K2"
+        ]
+      }
+    ],
+    "similar_prior_cases": [
+      "CC-0031",
+      "CC-0071",
+      "CC-0073",
+      "CC-0097",
+      "CC-0115",
+      "CC-0118",
+      "CC-0135",
+      "CC-0173"
+    ],
+    "summary": "The cardholder disputed a $55.68 online transaction on 2016-12-19 on card C13171-K2. No documented fraud pattern matched: the transaction sits within this cardholder's established history of amounts, regions and channels, and the card's surrounding activity shows no testing sequence, no burst and no out-of-region use. Case memory returned 8 similar closed cases (8 confirmed fraud, 0 cleared), including CC-0031, CC-0071, CC-0073. Assessed fraud probability 0.30, verdict uncertain. Recommended: CREATE_CASE (auto), MONITOR_CARD (auto).",
+    "written_to_graph": true,
+    "graph_case_id": "CASE-2016-008"
+  },
+  "evidence_requests": [],
+  "next_best_actions": {
+    "initial": [
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "R1: case opened per policy section 3a"
+      },
+      {
+        "action": "MONITOR_CARD",
+        "route": "auto",
+        "reason": "R1: raise monitoring sensitivity while the signal is unresolved"
+      }
+    ],
+    "final": [
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "R1: case opened per policy section 3a"
+      },
+      {
+        "action": "MONITOR_CARD",
+        "route": "auto",
+        "reason": "R1: raise monitoring sensitivity while the signal is unresolved"
+      }
+    ],
+    "what_changed": "nothing"
+  },
+  "sar": {
+    "file": false,
+    "reason": "R2 and policy 3a: fraud is neither confirmed nor strongly suspected (probability 0.30), so no report is due",
+    "narrative": "",
+    "subjects": [],
+    "total_amount_usd": 0,
+    "activity_dates": []
+  },
+  "stop_reason": "Further evidence-gathering would not change the recommended action: the available signals are exhausted and the case is recorded at probability 0.30.",
+  "tool_calls": 7,
+  "tokens": 0,
+  "latency_s": 0
+}

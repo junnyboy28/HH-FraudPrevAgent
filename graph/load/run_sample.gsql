@@ -1,0 +1,36 @@
+// Runs the loading job against the sample slice.
+//
+// Every path below must be readable BY THE TIGERGRAPH SERVER, not by your
+// laptop. On Community Edition in Docker, copy graph/load/prepared/sample into
+// the container first:
+//   docker cp graph/load/prepared/sample <container>:/home/tigergraph/hhgoa/sample
+// Then run:
+//   gsql -g FraudGraph graph/load/run_sample.gsql
+//
+// Adjust TG_DATA below if you put the files somewhere else. See README.md in
+// this folder for Savanna, which loads local files through its own UI.
+
+USE GRAPH FraudGraph
+
+RUN LOADING JOB load_fraud_graph USING
+  f_accounts="/home/tigergraph/hhgoa/sample/accounts.csv",
+  f_cards="/home/tigergraph/hhgoa/sample/cards.csv",
+  f_transactions="/home/tigergraph/hhgoa/sample/transactions.csv",
+  f_devices="/home/tigergraph/hhgoa/sample/devices.csv",
+  f_email_domains="/home/tigergraph/hhgoa/sample/email_domains.csv",
+  f_billing_regions="/home/tigergraph/hhgoa/sample/billing_regions.csv",
+  f_cases="/home/tigergraph/hhgoa/sample/cases.csv",
+  f_fraud_patterns="/home/tigergraph/hhgoa/sample/fraud_patterns.csv",
+  f_owns="/home/tigergraph/hhgoa/sample/e_owns.csv",
+  f_made="/home/tigergraph/hhgoa/sample/e_made.csv",
+  f_used_device="/home/tigergraph/hhgoa/sample/e_used_device.csv",
+  f_purchaser_email="/home/tigergraph/hhgoa/sample/e_purchaser_email.csv",
+  f_recipient_email="/home/tigergraph/hhgoa/sample/e_recipient_email.csv",
+  f_billed_in="/home/tigergraph/hhgoa/sample/e_billed_in.csv",
+  f_next_txn="/home/tigergraph/hhgoa/sample/e_next_txn.csv",
+  f_shared_by="/home/tigergraph/hhgoa/sample/e_shared_by.csv",
+  f_involves="/home/tigergraph/hhgoa/sample/e_involves.csv",
+  f_on_card="/home/tigergraph/hhgoa/sample/e_on_card.csv",
+  f_connected_to="/home/tigergraph/hhgoa/sample/e_connected_to.csv",
+  f_investigates="/home/tigergraph/hhgoa/sample/e_investigates.csv",
+  f_matches_pattern="/home/tigergraph/hhgoa/sample/e_matches_pattern.csv"

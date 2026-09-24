@@ -1,0 +1,222 @@
+// TigerGraph schema for the HHGOA fraud investigation graph.
+//
+// Node and edge types follow docs/architecture.md section 3.1, with attributes
+// taken from the actual columns in data/HHGOA_IEEE. See graph/load/README.md
+// for the column mapping and for the deviations from architecture.md section
+// 3.1 that the dataset forced.
+//
+// Install with:
+//   gsql graph/schema.gsql
+// or paste into the GSQL Web Shell / Savanna GraphStudio.
+//
+// Vertex and edge types are created as global types first, then gathered into
+// the graph by the CREATE GRAPH statement at the bottom of this file. The graph
+// name there must match TIGERGRAPH_GRAPH_NAME in .env.
+
+// ---------------------------------------------------------------------------
+// Vertices
+// ---------------------------------------------------------------------------
+
+// A cardholder. account_id is the dataset customer_id (e.g. C01234).
+// card1 is constant across every transaction of a customer (checked over all
+// 590,742 rows), which is why the dataset derives customer_id from it.
+CREATE VERTEX Customer (
+  PRIMARY_ID account_id STRING,
+  card1 STRING,
+  n_cards INT,
+  n_transactions INT,
+  first_seen DATETIME,
+  last_seen DATETIME
+) WITH STATS="outdegree_by_edgetype", PRIMARY_ID_AS_ATTRIBUTE="true"
+
+// A payment card, keyed in the dataset format C01234-K1.
+// Read "How card_id is derived" in graph/load/README.md before changing this.
+CREATE VERTEX PaymentCard (
+  PRIMARY_ID card_id STRING,
+  account_id STRING,
+  card_type STRING,     // card6: credit, debit, or "" where the dataset omits it
+  network STRING,       // card4: visa, mastercard, american express, discover
+  k_index INT,          // the N in -KN
+  n_transactions INT,
+  first_seen DATETIME,
+  last_seen DATETIME
+) WITH STATS="outdegree_by_edgetype", PRIMARY_ID_AS_ATTRIBUTE="true"
+
+// One row of transactions.csv. The unnamed engineered features (C1-C14,
+// D1-D15, V1-V339) are deliberately not loaded. See "Columns not loaded" in
+// graph/load/README.md for why, and for how to add them back.
+CREATE VERTEX Transaction (
+  PRIMARY_ID txn_id STRING,
+  transaction_dt UINT,      // TransactionDT, seconds from the dataset start
+  amount DOUBLE,            // TransactionAmt, USD
+  product_cd STRING,        // W, C, H, R, S
+  channel STRING,           // in_person (product code W) or online
+  risk_score DOUBLE,        // the bank model score: an input, never a verdict
+  ts DATETIME,
+  account_id STRING,
+  card_id STRING,
+  card1 STRING,
+  card2 STRING,
+  card3 STRING,
+  card4 STRING,
+  card5 STRING,
+  card6 STRING,
+  addr1 STRING,             // billing region code
+  addr2 STRING,             // billing country code, 87 is the home country
+  dist1 DOUBLE,             // -1 where the dataset leaves it blank
+  dist2 DOUBLE,             // -1 where the dataset leaves it blank
+  p_emaildomain STRING,
+  r_emaildomain STRING,
+  M1 STRING, M2 STRING, M3 STRING, M4 STRING, M5 STRING,
+  M6 STRING, M7 STRING, M8 STRING, M9 STRING,
+  has_identity BOOL
+) WITH STATS="outdegree_by_edgetype", PRIMARY_ID_AS_ATTRIBUTE="true"
+
+// A device profile, keyed exactly as the answer format needs for
+// connected_device_profiles: "DeviceInfo | OS | browser | screen".
+// Online transactions only. Product code W rows carry no identity record.
+CREATE VERTEX DeviceProfile (
+  PRIMARY_ID device_profile STRING,
+  device_info STRING,
+  os STRING,               // id_30
+  browser STRING,          // id_31
+  screen STRING,           // id_33
+  device_type STRING,      // DeviceType: mobile or desktop
+  n_transactions INT,
+  n_cards INT
+) WITH STATS="outdegree_by_edgetype", PRIMARY_ID_AS_ATTRIBUTE="true"
+
+// Purchaser or recipient email domain. This is a DOMAIN (gmail.com), not an
+// address, so a shared EmailDomain is not an identity link between accounts.
+CREATE VERTEX EmailDomain (
+  PRIMARY_ID domain STRING,
+  n_transactions INT
+) WITH STATS="outdegree_by_edgetype", PRIMARY_ID_AS_ATTRIBUTE="true"
+
+// Billing region: the anonymized addr1 code, with addr2 as the country code.
+CREATE VERTEX BillingRegion (
+  PRIMARY_ID region_code STRING,
+  country_code STRING,
+  n_transactions INT,
+  n_cards INT
+) WITH STATS="outdegree_by_edgetype", PRIMARY_ID_AS_ATTRIBUTE="true"
+
+// An investigation record. Covers both the bank's 5,565 closed cases
+// (source "closed_history") and the cases this agent opens (source "agent").
+CREATE VERTEX FraudCase (
+  PRIMARY_ID case_id STRING,
+  source STRING,               // closed_history or agent
+  account_id STRING,
+  card_id STRING,
+  opened_at DATETIME,
+  closed_at DATETIME,
+  outcome STRING,              // confirmed_fraud or cleared, closed cases only
+  pattern STRING,
+  first_fraud_txn_id STRING,
+  n_txns INT,
+  exposure_usd DOUBLE,
+  report_filed STRING,
+  actions_taken STRING,        // pipe separated policy action identifiers
+  analyst_notes STRING,
+  status STRING,               // agent cases: open, closed_fraud, closed_legitimate, escalated
+  verdict STRING,              // agent cases: fraud, legitimate, uncertain
+  fraud_probability DOUBLE,    // agent cases
+  summary STRING
+) WITH STATS="outdegree_by_edgetype", PRIMARY_ID_AS_ATTRIBUTE="true"
+
+// The five documented patterns, plus undocumented and none. Values match the
+// pattern enum the answer format requires, exactly.
+CREATE VERTEX FraudPattern (
+  PRIMARY_ID pattern_id STRING,
+  name STRING,
+  description STRING,
+  policy_refs STRING,
+  documented BOOL
+) WITH STATS="outdegree_by_edgetype", PRIMARY_ID_AS_ATTRIBUTE="true"
+
+// Chunked policy and regulatory text for GraphRAG grounding. Embeddings live
+// in Postgres + pgvector per architecture.md section 3.2. This vertex holds the
+// text and its graph links. Populated in the GraphRAG phase, not at load time.
+CREATE VERTEX PolicyDoc (
+  PRIMARY_ID chunk_id STRING,
+  source STRING,               // fraud_policy, pattern_doc, regulatory
+  section STRING,
+  title STRING,
+  url STRING,
+  text STRING
+) WITH STATS="outdegree_by_edgetype", PRIMARY_ID_AS_ATTRIBUTE="true"
+
+// ---------------------------------------------------------------------------
+// Edges
+// ---------------------------------------------------------------------------
+
+CREATE DIRECTED EDGE OWNS (FROM Customer, TO PaymentCard) WITH REVERSE_EDGE="OWNED_BY"
+
+// architecture.md section 3.1 draws MADE from Customer. It hangs off PaymentCard here
+// because the dataset identifies a card per transaction and every pattern query
+// works per card. An Customer reaches its transactions through OWNS.
+CREATE DIRECTED EDGE MADE (FROM PaymentCard, TO Transaction) WITH REVERSE_EDGE="MADE_BY"
+
+// Online transactions only. Attributes are that transaction's identity record.
+CREATE DIRECTED EDGE USED_DEVICE (
+  FROM Transaction, TO DeviceProfile,
+  device_type STRING,
+  id_12 STRING, id_13 STRING, id_14 STRING,
+  id_15 STRING,   // device New or Found for this account: the pattern 3 signal
+  id_16 STRING, id_17 STRING, id_18 STRING, id_19 STRING, id_20 STRING,
+  id_21 STRING, id_22 STRING,
+  id_23 STRING,   // proxy: transparent, anonymous, hidden
+  id_24 STRING, id_25 STRING, id_26 STRING, id_27 STRING, id_28 STRING,
+  id_29 STRING, id_30 STRING, id_31 STRING, id_32 STRING, id_33 STRING,
+  id_34 STRING,   // match status
+  id_35 STRING, id_36 STRING, id_37 STRING, id_38 STRING
+) WITH REVERSE_EDGE="DEVICE_USED_IN"
+
+CREATE DIRECTED EDGE PURCHASER_EMAIL (FROM Transaction, TO EmailDomain) WITH REVERSE_EDGE="PURCHASE_FROM_DOMAIN"
+CREATE DIRECTED EDGE RECIPIENT_EMAIL (FROM Transaction, TO EmailDomain) WITH REVERSE_EDGE="RECEIPT_AT_DOMAIN"
+CREATE DIRECTED EDGE BILLED_IN (FROM Transaction, TO BillingRegion) WITH REVERSE_EDGE="BILLING_OF"
+
+// Consecutive transactions on one card, ordered by ts. This makes velocity
+// bursts and card-testing sequences a traversal instead of a scan.
+CREATE DIRECTED EDGE NEXT_TXN (
+  FROM Transaction, TO Transaction,
+  gap_seconds UINT
+) WITH REVERSE_EDGE="PREV_TXN"
+
+// Derived. One device profile used by more than one account is the primary
+// cross-account fraud signal (architecture.md section 3.1).
+CREATE DIRECTED EDGE SHARED_BY (
+  FROM DeviceProfile, TO Customer,
+  n_transactions INT,
+  first_seen DATETIME,
+  last_seen DATETIME
+) WITH REVERSE_EDGE="SHARES_DEVICE"
+
+CREATE DIRECTED EDGE INVOLVES (FROM FraudCase, TO Transaction) WITH REVERSE_EDGE="INVOLVED_IN"
+CREATE DIRECTED EDGE ON_CARD (FROM FraudCase, TO PaymentCard) WITH REVERSE_EDGE="HAS_CASE"
+CREATE DIRECTED EDGE CONNECTED_TO (FROM FraudCase, TO PaymentCard) WITH REVERSE_EDGE="CONNECTED_CASE"
+CREATE DIRECTED EDGE INVESTIGATES (FROM FraudCase, TO Customer) WITH REVERSE_EDGE="INVESTIGATED_BY"
+CREATE DIRECTED EDGE MATCHES_PATTERN (FROM FraudCase, TO FraudPattern) WITH REVERSE_EDGE="PATTERN_OF"
+
+// Written by the agent's case-memory step. Empty after a data load.
+CREATE DIRECTED EDGE SIMILAR_TO (
+  FROM FraudCase, TO FraudCase,
+  similarity DOUBLE,
+  basis STRING          // shared_entity, embedding, or both
+) WITH REVERSE_EDGE="SIMILAR_FROM"
+
+CREATE DIRECTED EDGE CITES_POLICY (FROM FraudCase, TO PolicyDoc) WITH REVERSE_EDGE="CITED_BY"
+
+// ---------------------------------------------------------------------------
+// Graph
+// ---------------------------------------------------------------------------
+// Reverse edge types are created implicitly by WITH REVERSE_EDGE above and do
+// not need listing here.
+
+CREATE GRAPH FraudGraph (
+  Customer, PaymentCard, Transaction, DeviceProfile, EmailDomain, BillingRegion,
+  FraudCase, FraudPattern, PolicyDoc,
+  OWNS, MADE, USED_DEVICE, PURCHASER_EMAIL, RECIPIENT_EMAIL, BILLED_IN,
+  NEXT_TXN, SHARED_BY, INVOLVES, ON_CARD, CONNECTED_TO, INVESTIGATES,
+  MATCHES_PATTERN, SIMILAR_TO, CITES_POLICY
+)

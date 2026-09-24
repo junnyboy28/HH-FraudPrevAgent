@@ -1,0 +1,152 @@
+{
+  "case_id": "HHG-016",
+  "case": {
+    "status": "closed_legitimate",
+    "verdict": "legitimate",
+    "fraud_probability": 0.1,
+    "pattern": "none",
+    "pattern_description": "",
+    "affected_txn_ids": [],
+    "first_suspicious_txn_id": "",
+    "connected_card_ids": [
+      "C12412-K1",
+      "C04597-K2",
+      "C04597-K1",
+      "C05031-K2",
+      "C07855-K1",
+      "C13372-K1",
+      "C11444-K1",
+      "C08962-K2",
+      "C11923-K2",
+      "C06247-K1",
+      "C02181-K2",
+      "C11509-K2",
+      "C12966-K1",
+      "C13447-K1",
+      "C06630-K2",
+      "C07602-K1",
+      "C07562-K2",
+      "C08391-K2",
+      "C00294-K2",
+      "C09657-K2"
+    ],
+    "connected_device_profiles": [],
+    "exposure_usd": 0,
+    "evidence": [
+      {
+        "claim": "The flagged transaction is $59.67 online on 2016-12-11 22:39:08, product code C, billing region unrecorded, with the bank's model score at 0.37. The score is an input and not a verdict.",
+        "source": "graph",
+        "ref": "query:getEntityNeighborhood(txn_id=3534820)",
+        "entity_ids": [
+          "3534820",
+          "C09988-K1",
+          "C09988"
+        ]
+      },
+      {
+        "claim": "The cardholder has 61 transactions between 2016-07-06 19:02:49 and 2016-12-24 19:28:38, across 2 billing regions and online channels, with a median amount of $37.54.",
+        "source": "graph",
+        "ref": "query:getAccountProfile(account_id=C09988)",
+        "entity_ids": [
+          "C09988",
+          "C09988-K1"
+        ]
+      },
+      {
+        "claim": "Case memory returned 8 structurally similar closed cases, of which 8 were confirmed fraud and 0 were cleared as false alarms. Retrieved by shared_device.",
+        "source": "graph",
+        "ref": "query:findSimilarClosedCases(account_id=C09988)",
+        "entity_ids": [
+          "CC-0073",
+          "CC-0206",
+          "CC-0829",
+          "CC-1495",
+          "CC-1611",
+          "CC-1981",
+          "CC-2154",
+          "CC-2393"
+        ]
+      },
+      {
+        "claim": "The card carries 61 transactions in total, which is the baseline the pattern checks ran against.",
+        "source": "graph",
+        "ref": "query:getCardTimeline(card_id=C09988-K1)",
+        "entity_ids": [
+          "C09988-K1"
+        ]
+      },
+      {
+        "claim": "Assumed confirmation. The cardholder recognises the transaction. Assumption basis: the activity fits this cardholder's established history and the evidence supports fraud only at probability 0.22.",
+        "source": "customer",
+        "ref": "evidence_request:1",
+        "entity_ids": [
+          "3534820"
+        ]
+      }
+    ],
+    "similar_prior_cases": [
+      "CC-0073",
+      "CC-0206",
+      "CC-0829",
+      "CC-1495",
+      "CC-1611",
+      "CC-1981",
+      "CC-2154",
+      "CC-2393"
+    ],
+    "summary": "The cardholder disputed a $59.67 online transaction on 2016-12-11 on card C09988-K1. No documented fraud pattern matched: the transaction sits within this cardholder's established history of amounts, regions and channels, and the card's surrounding activity shows no testing sequence, no burst and no out-of-region use. Case memory returned 8 similar closed cases (8 confirmed fraud, 0 cleared), including CC-0073, CC-0206, CC-0829. Because the case rested on a weak signal, the cardholder was asked to validate the transaction; the assumed response is recorded in evidence_requests. Assessed fraud probability 0.10, verdict legitimate. Recommended: CLOSE_NO_FRAUD (auto), CREATE_CASE (auto).",
+    "written_to_graph": true,
+    "graph_case_id": "CASE-2016-016"
+  },
+  "evidence_requests": [
+    {
+      "type": "customer_validation",
+      "asked_after_step": 4,
+      "assumed_response": "Assumed confirmation. The cardholder recognises the transaction. Assumption basis: the activity fits this cardholder's established history and the evidence supports fraud only at probability 0.22."
+    }
+  ],
+  "next_best_actions": {
+    "initial": [
+      {
+        "action": "VERIFY_WITH_CUSTOMER",
+        "route": "auto",
+        "reason": "R1: single signal at probability 0.22, below 0.70"
+      },
+      {
+        "action": "STEP_UP_AUTH",
+        "route": "auto",
+        "reason": "R1: confirm the cardholder before considering any block"
+      },
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "R1: case opened per policy section 3a"
+      }
+    ],
+    "final": [
+      {
+        "action": "CLOSE_NO_FRAUD",
+        "route": "auto",
+        "reason": "R3: cardholder confirmed they made the transaction"
+      },
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "R3: confirmation recorded in the case file"
+      }
+    ],
+    "what_changed": "The assumed customer response added CLOSE_NO_FRAUD and dropped VERIFY_WITH_CUSTOMER, STEP_UP_AUTH."
+  },
+  "sar": {
+    "file": false,
+    "reason": "R2 and policy 3a: fraud is neither confirmed nor strongly suspected (probability 0.10), so no report is due",
+    "narrative": "",
+    "subjects": [],
+    "total_amount_usd": 0,
+    "activity_dates": []
+  },
+  "stop_reason": "Fraud probability 0.10 is at or below 0.15 with 5 independent pieces of evidence, so the alert is resolved as legitimate.",
+  "tool_calls": 7,
+  "tokens": 0,
+  "latency_s": 0
+}

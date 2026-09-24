@@ -1,0 +1,194 @@
+{
+  "case_id": "HHG-019",
+  "case": {
+    "status": "escalated",
+    "verdict": "uncertain",
+    "fraud_probability": 0.62,
+    "pattern": "account_takeover",
+    "pattern_description": "",
+    "affected_txn_ids": [
+      "3495125",
+      "3499109",
+      "3503878",
+      "3507926",
+      "3508124",
+      "3511673",
+      "3512695"
+    ],
+    "first_suspicious_txn_id": "3495125",
+    "connected_card_ids": [
+      "C07671-K2",
+      "C05530-K2",
+      "C07360-K1",
+      "C11010-K1",
+      "C10127-K2",
+      "C05467-K1",
+      "C07612-K1",
+      "C00854-K2",
+      "C11227-K2",
+      "C07614-K2",
+      "C07648-K2",
+      "C07919-K2",
+      "C05704-K2",
+      "C07171-K2",
+      "C01109-K2",
+      "C02716-K2",
+      "C02716-K1",
+      "C04024-K2",
+      "C09424-K1",
+      "C02285-K2"
+    ],
+    "connected_device_profiles": [
+      "Windows | other | chrome 61.0 | 1280x720"
+    ],
+    "exposure_usd": 816.62,
+    "evidence": [
+      {
+        "claim": "The flagged transaction is $99.92 online on 2016-12-01 17:28:53, product code R, billing region 264.0, with the bank's model score at 0.9. The score is an input and not a verdict.",
+        "source": "graph",
+        "ref": "query:getEntityNeighborhood(txn_id=3503878)",
+        "entity_ids": [
+          "3503878",
+          "C07987-K2",
+          "C07987"
+        ]
+      },
+      {
+        "claim": "The cardholder has 248 transactions between 2016-07-03 00:38:45 and 2016-12-31 22:55:46, across 33 billing regions and online and in_person channels, with a median amount of $110.94.",
+        "source": "graph",
+        "ref": "query:getAccountProfile(account_id=C07987)",
+        "entity_ids": [
+          "C07987",
+          "C07987-K2",
+          "C07987-K1"
+        ]
+      },
+      {
+        "claim": "1 of those transactions carry identity match status match_status:0, which appears on 0.3% of identity records dataset-wide",
+        "ref": "query:getEntityNeighborhood(txn_id=3503878)",
+        "entityIds": [
+          "3503878"
+        ],
+        "source": "graph",
+        "entity_ids": [
+          "3503878"
+        ]
+      },
+      {
+        "claim": "a device profile on this account (\"Windows | Windows 7 |  | 1440x900\") is used by 5 other accounts and only 2 cards dataset-wide, so it identifies a specific device",
+        "ref": "query:findSharedDevicesAcrossAccounts(account_id=C07987)",
+        "entityIds": [
+          "C07727",
+          "C07671",
+          "C05530",
+          "C07360",
+          "C11010"
+        ],
+        "source": "graph",
+        "entity_ids": [
+          "C07727",
+          "C07671",
+          "C05530",
+          "C07360",
+          "C11010"
+        ]
+      },
+      {
+        "claim": "This account has 3 prior confirmed-fraud case(s) of its own: CC-2011 (out_of_region_use), CC-2860 (card_not_present_fraud), CC-5026 (out_of_region_use).",
+        "source": "graph",
+        "ref": "query:findLinkedFraudHistory(account_id=C07987)",
+        "entity_ids": [
+          "CC-2011",
+          "CC-2860",
+          "CC-5026"
+        ]
+      },
+      {
+        "claim": "Case memory returned 8 structurally similar closed cases, of which 8 were confirmed fraud and 0 were cleared as false alarms. Retrieved by shared_device and same_pattern and same_region.",
+        "source": "graph",
+        "ref": "query:findSimilarClosedCases(account_id=C07987)",
+        "entity_ids": [
+          "CC-0298",
+          "CC-1475",
+          "CC-3364",
+          "CC-3530",
+          "CC-4294",
+          "CC-5049",
+          "CC-5301",
+          "CC-0291"
+        ]
+      },
+      {
+        "claim": "The card carries 247 transactions in total, which is the baseline the pattern checks ran against.",
+        "source": "graph",
+        "ref": "query:getCardTimeline(card_id=C07987-K2)",
+        "entity_ids": [
+          "C07987-K2"
+        ]
+      }
+    ],
+    "similar_prior_cases": [
+      "CC-0298",
+      "CC-1475",
+      "CC-3364",
+      "CC-3530",
+      "CC-4294",
+      "CC-5049",
+      "CC-5301",
+      "CC-0291"
+    ],
+    "summary": "The bank's model scored a $99.92 online transaction at 0.9 on 2016-12-01 on card C07987-K2. The evidence fits account takeover: 1 of those transactions carry identity match status match_status:0, which appears on 0.3% of identity records dataset-wide. a device profile on this account (\"Windows | Windows 7 |  | 1440x900\") is used by 5 other accounts and only 2 cards dataset-wide, so it identifies a specific device. Case memory returned 8 similar closed cases (8 confirmed fraud, 0 cleared), including CC-0298, CC-1475, CC-3364. Assessed fraud probability 0.62, verdict uncertain, exposure $816.62. Recommended: CREATE_CASE (auto), MONITOR_CONNECTED_CARDS (auto), ESCALATE_TO_ANALYST (auto).",
+    "written_to_graph": true,
+    "graph_case_id": "CASE-2016-019"
+  },
+  "evidence_requests": [],
+  "next_best_actions": {
+    "initial": [
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "R6: shared origin identified: a device profile shared with account C07727"
+      },
+      {
+        "action": "MONITOR_CONNECTED_CARDS",
+        "route": "auto",
+        "reason": "R6: cards sharing that origin placed under monitoring"
+      },
+      {
+        "action": "ESCALATE_TO_ANALYST",
+        "route": "auto",
+        "reason": "R8: verdict uncertain with exposure of $816.62 above $500"
+      }
+    ],
+    "final": [
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "R6: shared origin identified: a device profile shared with account C07727"
+      },
+      {
+        "action": "MONITOR_CONNECTED_CARDS",
+        "route": "auto",
+        "reason": "R6: cards sharing that origin placed under monitoring"
+      },
+      {
+        "action": "ESCALATE_TO_ANALYST",
+        "route": "auto",
+        "reason": "R8: verdict uncertain with exposure of $816.62 above $500"
+      }
+    ],
+    "what_changed": "nothing"
+  },
+  "sar": {
+    "file": false,
+    "reason": "R2 and policy 3a: fraud is neither confirmed nor strongly suspected (probability 0.62), so no report is due",
+    "narrative": "",
+    "subjects": [],
+    "total_amount_usd": 0,
+    "activity_dates": []
+  },
+  "stop_reason": "Further evidence-gathering would not change the recommended action: the available signals are exhausted and the case is recorded at probability 0.62.",
+  "tool_calls": 7,
+  "tokens": 0,
+  "latency_s": 0
+}

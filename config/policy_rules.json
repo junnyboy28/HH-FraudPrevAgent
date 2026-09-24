@@ -1,0 +1,122 @@
+{
+  "$comment": "The bank's fraud policy, version 1.0, as structured config. Source: the Fraud Policy section of data/HHGOA_IEEE/README.md. Every recommendation the agent makes must cite one of these rule ids, and the full policy text is also chunked into PolicyDoc vertices for GraphRAG retrieval. This file is the machine-readable index; the README is authoritative if the two ever disagree.",
+  "rules": {
+    "R1": {
+      "title": "Verify before you block on a weak signal",
+      "text": "If the case rests on a single signal (including a risk score alone) and assessed fraud probability is below 0.70, recommend VERIFY_WITH_CUSTOMER or STEP_UP_AUTH before any block. Blocking a legitimate customer on one signal is a policy breach.",
+      "applies_when": "single_signal AND fraud_probability < 0.70",
+      "recommends": ["VERIFY_WITH_CUSTOMER", "STEP_UP_AUTH"],
+      "forbids": ["BLOCK_CARD", "BLOCK_ALL_CARDS"]
+    },
+    "R2": {
+      "title": "Customer denies the transaction",
+      "text": "Recommend BLOCK_CARD and CREATE_CASE. Add FILE_REPORT if exposure exceeds $1,000 or the case connects to a shared device profile or another card's fraud.",
+      "applies_when": "customer_response = denied",
+      "recommends": ["BLOCK_CARD", "CREATE_CASE"],
+      "conditional": [
+        {
+          "when": "exposure_usd > 1000 OR connected_to_shared_device OR connected_to_other_card_fraud",
+          "add": ["FILE_REPORT"]
+        }
+      ]
+    },
+    "R3": {
+      "title": "Customer confirms the transaction",
+      "text": "Recommend CLOSE_NO_FRAUD. Note the confirmation in the case file.",
+      "applies_when": "customer_response = confirmed",
+      "recommends": ["CLOSE_NO_FRAUD"]
+    },
+    "R4": {
+      "title": "No reply within 24 hours",
+      "text": "Recommend MONITOR_CARD and DECLINE_TRANSACTION for pending authorizations. Escalate if exposure exceeds $500.",
+      "applies_when": "customer_response = no_reply",
+      "recommends": ["MONITOR_CARD", "DECLINE_TRANSACTION"],
+      "conditional": [
+        { "when": "exposure_usd > 500", "add": ["ESCALATE_TO_ANALYST"] }
+      ]
+    },
+    "R5": {
+      "title": "Card testing",
+      "text": "Three or more small online authorizations on one card within an hour, followed by a larger purchase: recommend DECLINE_TRANSACTION and STEP_UP_AUTH. If a purchase over $100 has already cleared, recommend BLOCK_CARD.",
+      "applies_when": "pattern = card_testing",
+      "recommends": ["DECLINE_TRANSACTION", "STEP_UP_AUTH"],
+      "conditional": [
+        { "when": "cleared_purchase_amount > 100", "add": ["BLOCK_CARD"] }
+      ]
+    },
+    "R6": {
+      "title": "Shared origin",
+      "text": "When several cards show fraud from the same device profile, the same billing region, or the same recipient email in one window, name the shared element, recommend CREATE_CASE and FILE_REPORT, and MONITOR_CONNECTED_CARDS for every card that shares it.",
+      "applies_when": "multiple_cards_share_origin",
+      "recommends": ["CREATE_CASE", "FILE_REPORT", "MONITOR_CONNECTED_CARDS"],
+      "requires": "Name the shared element explicitly in the evidence and the narrative."
+    },
+    "R7": {
+      "title": "Disputed but legitimate",
+      "text": "When the customer disputes a charge that matches their own recurring pattern (same merchant, same amount, monthly), recommend CREATE_CASE, VERIFY_WITH_CUSTOMER, and WARN_CUSTOMER. Do not block.",
+      "applies_when": "disputed AND matches_recurring_pattern",
+      "recommends": ["CREATE_CASE", "VERIFY_WITH_CUSTOMER", "WARN_CUSTOMER"],
+      "forbids": ["BLOCK_CARD", "BLOCK_ALL_CARDS"]
+    },
+    "R8": {
+      "title": "Escalate when uncertain and exposed",
+      "text": "If the verdict is uncertain and exposure exceeds $500, or the evidence conflicts, recommend ESCALATE_TO_ANALYST.",
+      "applies_when": "(verdict = uncertain AND exposure_usd > 500) OR evidence_conflicts",
+      "recommends": ["ESCALATE_TO_ANALYST"]
+    },
+    "R9": {
+      "title": "Undocumented patterns",
+      "text": "When activity fits none of the known patterns but the evidence shows coordinated or repeated abuse across customers, recommend CREATE_CASE, FILE_REPORT, and ESCALATE_TO_ANALYST, and describe the pattern in your own words. Do not force it into a known category.",
+      "applies_when": "pattern = undocumented",
+      "recommends": ["CREATE_CASE", "FILE_REPORT", "ESCALATE_TO_ANALYST"],
+      "requires": "pattern_description must be filled with two or three sentences on what the pattern is, who it affects, and how it was found."
+    },
+    "R10": {
+      "title": "Never block all cards without cause",
+      "text": "Never BLOCK_ALL_CARDS unless at least two of the customer's cards show confirmed fraud or the customer's credentials are confirmed compromised.",
+      "applies_when": "always",
+      "forbids": ["BLOCK_ALL_CARDS"],
+      "unless": "two_or_more_cards_confirmed_fraud OR credentials_confirmed_compromised"
+    }
+  },
+  "case_criteria": {
+    "$comment": "Policy section 3a. A case is internal and can be updated as evidence arrives.",
+    "open_a_case_when_any": [
+      "fraud_probability >= 0.30",
+      "the agent requests evidence",
+      "the customer disputes a charge"
+    ]
+  },
+  "sar_criteria": {
+    "$comment": "Policy section 3a. A report is a regulatory filing sent outside the bank. Most cases never need one. Deciding correctly between 'case only' and 'case plus report' is part of the next-best-action score.",
+    "requires_all": ["fraud confirmed or strongly suspected"],
+    "and_any_of": [
+      "exposure_usd > 1000",
+      "activity connects to a shared device profile",
+      "activity connects to a shared region cluster",
+      "activity connects to another customer's fraud",
+      "the pattern is coordinated or undocumented (R9)"
+    ],
+    "narrative_must_cover": ["who", "what", "when", "where", "how", "why it is suspicious"],
+    "narrative_length": "six to twelve sentences, standing on its own without the case file"
+  },
+  "stopping_criteria": {
+    "$comment": "Policy section 6. Investigations that continue past a defensible decision waste time; investigations that stop before one create risk. Both are marked down.",
+    "stop_when_any": [
+      "fraud_probability >= 0.85 or <= 0.15, supported by at least two independent pieces of evidence",
+      "a verification response settles the question",
+      "further steps are unlikely to change the decision"
+    ],
+    "always_record": "stop_reason"
+  },
+  "evidence_requests": {
+    "$comment": "Policy section 5. The agent may take these without approval. Customer and analyst replies are NOT provided by the dataset: simulate the response and state the assumption in the case file's evidence_requests.",
+    "types": ["customer_validation", "step_up_auth", "analyst_info"],
+    "record_fields": ["type", "asked_after_step", "assumed_response"]
+  },
+  "escalation_guardrails": {
+    "$comment": "Not policy text, a build decision recorded here so the orchestrator has one place to read it. agent.md section 3 caps the evidence loop.",
+    "max_evidence_cycles": 3,
+    "on_cap_reached": "ESCALATE_TO_ANALYST"
+  }
+}

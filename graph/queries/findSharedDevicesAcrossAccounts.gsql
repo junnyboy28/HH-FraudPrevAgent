@@ -1,0 +1,44 @@
+// Finds device profiles used by this account that are ALSO used by other
+// accounts, with the other accounts and how many transactions each ran on the
+// shared device. This is the primary cross-account fraud signal and the
+// evidence policy rule R6 (shared origin) needs (EVIDENCE_GATHERED state).
+//
+// Traverses the derived SHARED_BY edge, which the data load materializes.
+
+CREATE QUERY findSharedDevicesAcrossAccounts(VERTEX<Customer> cust, INT min_other_accounts = 1)
+FOR GRAPH FraudGraph {
+
+  TYPEDEF TUPLE <
+    STRING device_profile,
+    STRING other_account_id,
+    INT n_transactions,
+    STRING first_seen,
+    STRING last_seen
+  > SharedRow;
+
+  ListAccum<SharedRow> @@shared;
+  SetAccum<STRING> @@shared_device_profiles;
+  SetAccum<STRING> @@other_accounts;
+
+  seed = {cust};
+
+  // Devices this account has used, that more than one account has touched.
+  myDevices = SELECT d
+              FROM seed:a -(SHARES_DEVICE:e)-> DeviceProfile:d
+              WHERE d.n_cards > 1;
+
+  others = SELECT other
+           FROM myDevices:d -(SHARED_BY:e)-> Customer:other
+           WHERE other != cust
+           ACCUM
+             @@shared += SharedRow(d.device_profile, other.account_id,
+                                   e.n_transactions,
+                                   to_string(e.first_seen), to_string(e.last_seen)),
+             @@shared_device_profiles += d.device_profile,
+             @@other_accounts += other.account_id;
+
+  PRINT @@shared AS shared_device_links;
+  PRINT @@shared_device_profiles AS device_profiles;
+  PRINT @@other_accounts AS other_accounts;
+  PRINT @@other_accounts.size() AS n_other_accounts;
+}

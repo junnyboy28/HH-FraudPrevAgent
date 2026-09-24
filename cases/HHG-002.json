@@ -1,0 +1,154 @@
+{
+  "case_id": "HHG-002",
+  "case": {
+    "status": "open",
+    "verdict": "uncertain",
+    "fraud_probability": 0.53,
+    "pattern": "card_not_present_fraud",
+    "pattern_description": "",
+    "affected_txn_ids": [
+      "3478782"
+    ],
+    "first_suspicious_txn_id": "3478782",
+    "connected_card_ids": [
+      "C11919-K2",
+      "C04597-K2",
+      "C04597-K1",
+      "C05381-K2",
+      "C05031-K2",
+      "C09657-K2",
+      "C11952-K1",
+      "C11923-K2",
+      "C11844-K2",
+      "C11509-K2",
+      "C08962-K2",
+      "C11444-K1",
+      "C06744-K2",
+      "C13171-K2",
+      "C07204-K1",
+      "C11597-K2",
+      "C00294-K2",
+      "C06663-K2",
+      "C00426-K2",
+      "C01525-K2"
+    ],
+    "connected_device_profiles": [],
+    "exposure_usd": 292.36,
+    "evidence": [
+      {
+        "claim": "The flagged transaction is $292.36 online on 2016-11-22 17:27:07, product code C, billing region unrecorded, with the bank's model score at 0.79. The score is an input and not a verdict.",
+        "source": "graph",
+        "ref": "query:getEntityNeighborhood(txn_id=3478782)",
+        "entity_ids": [
+          "3478782",
+          "C11891-K1",
+          "C11891"
+        ]
+      },
+      {
+        "claim": "The cardholder has 44 transactions between 2016-07-03 19:00:17 and 2016-12-15 15:37:17, across 1 billing regions and online channels, with a median amount of $36.98.",
+        "source": "graph",
+        "ref": "query:getAccountProfile(account_id=C11891)",
+        "entity_ids": [
+          "C11891",
+          "C11891-K1"
+        ]
+      },
+      {
+        "claim": "$292.36 is more than four times this cardholder's median transaction of $36.98 across 44 transactions",
+        "ref": "query:getAccountProfile(account_id=C11891)",
+        "entityIds": [
+          "3478782"
+        ],
+        "source": "graph",
+        "entity_ids": [
+          "3478782"
+        ]
+      },
+      {
+        "claim": "This account has 1 prior confirmed-fraud case(s) of its own: CC-4160 (card_not_present_fraud).",
+        "source": "graph",
+        "ref": "query:findLinkedFraudHistory(account_id=C11891)",
+        "entity_ids": [
+          "CC-4160"
+        ]
+      },
+      {
+        "claim": "Case memory returned 8 structurally similar closed cases, of which 8 were confirmed fraud and 0 were cleared as false alarms. Retrieved by shared_device and same_pattern.",
+        "source": "graph",
+        "ref": "query:findSimilarClosedCases(account_id=C11891)",
+        "entity_ids": [
+          "CC-0067",
+          "CC-0081",
+          "CC-0086",
+          "CC-0199",
+          "CC-0206",
+          "CC-0211",
+          "CC-0218",
+          "CC-0227"
+        ]
+      },
+      {
+        "claim": "The card carries 44 transactions in total, which is the baseline the pattern checks ran against.",
+        "source": "graph",
+        "ref": "query:getCardTimeline(card_id=C11891-K1)",
+        "entity_ids": [
+          "C11891-K1"
+        ]
+      }
+    ],
+    "similar_prior_cases": [
+      "CC-0067",
+      "CC-0081",
+      "CC-0086",
+      "CC-0199",
+      "CC-0206",
+      "CC-0211",
+      "CC-0218",
+      "CC-0227"
+    ],
+    "summary": "The bank's model scored a $292.36 online transaction at 0.79 on 2016-11-22 on card C11891-K1. The evidence fits card not present fraud: $292.36 is more than four times this cardholder's median transaction of $36.98 across 44 transactions. Case memory returned 8 similar closed cases (8 confirmed fraud, 0 cleared), including CC-0067, CC-0081, CC-0086. Assessed fraud probability 0.53, verdict uncertain, exposure $292.36. Recommended: CREATE_CASE (auto), MONITOR_CONNECTED_CARDS (auto).",
+    "written_to_graph": true,
+    "graph_case_id": "CASE-2016-002"
+  },
+  "evidence_requests": [],
+  "next_best_actions": {
+    "initial": [
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "R6: shared origin identified: another cardholder's confirmed fraud reachable through a shared device"
+      },
+      {
+        "action": "MONITOR_CONNECTED_CARDS",
+        "route": "auto",
+        "reason": "R6: cards sharing that origin placed under monitoring"
+      }
+    ],
+    "final": [
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "R6: shared origin identified: another cardholder's confirmed fraud reachable through a shared device"
+      },
+      {
+        "action": "MONITOR_CONNECTED_CARDS",
+        "route": "auto",
+        "reason": "R6: cards sharing that origin placed under monitoring"
+      }
+    ],
+    "what_changed": "nothing"
+  },
+  "sar": {
+    "file": false,
+    "reason": "R2 and policy 3a: fraud is neither confirmed nor strongly suspected (probability 0.53), so no report is due",
+    "narrative": "",
+    "subjects": [],
+    "total_amount_usd": 0,
+    "activity_dates": []
+  },
+  "stop_reason": "Further evidence-gathering would not change the recommended action: the available signals are exhausted and the case is recorded at probability 0.53.",
+  "tool_calls": 6,
+  "tokens": 0,
+  "latency_s": 0
+}

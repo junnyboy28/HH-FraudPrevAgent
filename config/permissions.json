@@ -1,0 +1,93 @@
+{
+  "$comment": "Permission matrix for the orchestrator permission gate. Source: the Fraud Policy sections 1 and 2 in data/HHGOA_IEEE/README.md. The action keys are the exact identifiers the answer format requires; do not rename, abbreviate or add to them. Only actions resolving to route 'auto' may be executed by the agent. L1 and L2 actions are recommended with the route stated and wait for a human, including in tests and demo runs.",
+  "routes": {
+    "auto": "The agent may execute this itself.",
+    "L1": "A team lead must approve before execution.",
+    "L2": "A fraud manager must approve before execution."
+  },
+  "route_resolution": "Start from `route`. If `route_conditions` is present, the first condition whose `when` matches the case state replaces the route. Exposure is `exposure_usd`, the sum of absolute amounts of every transaction identified as part of the fraud episode.",
+  "actions": {
+    "ALLOW_TRANSACTION": {
+      "route": "auto",
+      "customer_impact": "none",
+      "description": "Let the flagged transaction stand."
+    },
+    "DECLINE_TRANSACTION": {
+      "route": "L1",
+      "customer_impact": "low",
+      "description": "Decline the flagged authorization only. Card stays active."
+    },
+    "MONITOR_CARD": {
+      "route": "auto",
+      "customer_impact": "none",
+      "description": "Card stays active; raise monitoring sensitivity for 72 hours."
+    },
+    "MONITOR_CONNECTED_CARDS": {
+      "route": "auto",
+      "customer_impact": "none",
+      "description": "Put other cards linked to the same device profile, region cluster, or ring under monitoring."
+    },
+    "WARN_CUSTOMER": {
+      "route": "auto",
+      "customer_impact": "none",
+      "description": "Send an informational message, such as a recurring charge reminder or a security tip."
+    },
+    "VERIFY_WITH_CUSTOMER": {
+      "route": "auto",
+      "customer_impact": "low",
+      "description": "Ask the cardholder whether they made the transaction. Card stays active pending reply.",
+      "evidence_request_type": "customer_validation"
+    },
+    "STEP_UP_AUTH": {
+      "route": "auto",
+      "customer_impact": "low",
+      "description": "Require a one-time passcode or app confirmation before further activity.",
+      "evidence_request_type": "step_up_auth"
+    },
+    "BLOCK_CARD": {
+      "route": "L1",
+      "route_conditions": [
+        {
+          "when": { "field": "exposure_usd", "op": ">", "value": 2500 },
+          "route": "L2",
+          "reason": "Policy section 2: BLOCK_CARD above $2,500 exposure needs a fraud manager."
+        }
+      ],
+      "customer_impact": "high",
+      "description": "Block this card and reissue."
+    },
+    "BLOCK_ALL_CARDS": {
+      "route": "L2",
+      "customer_impact": "very_high",
+      "description": "Block every card the customer holds.",
+      "preconditions": "R10: never recommend unless at least two of the customer's cards show confirmed fraud, or the customer's credentials are confirmed compromised."
+    },
+    "GENERATE_REPORT": {
+      "route": "auto",
+      "customer_impact": "none",
+      "description": "Write up the investigation for the internal record, without opening a case."
+    },
+    "CREATE_CASE": {
+      "route": "auto",
+      "customer_impact": "none",
+      "description": "Open an internal fraud case with the evidence attached, and write it to the graph."
+    },
+    "FILE_REPORT": {
+      "route": "L2",
+      "customer_impact": "none",
+      "description": "File a suspicious activity report with the regulator.",
+      "preconditions": "See sar_criteria in config/policy_rules.json. A report always has a case behind it."
+    },
+    "ESCALATE_TO_ANALYST": {
+      "route": "auto",
+      "customer_impact": "none",
+      "description": "Hand the case to a human analyst with the evidence.",
+      "evidence_request_type": "analyst_info"
+    },
+    "CLOSE_NO_FRAUD": {
+      "route": "auto",
+      "customer_impact": "none",
+      "description": "Close the alert as legitimate."
+    }
+  }
+}

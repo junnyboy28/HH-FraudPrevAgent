@@ -1,0 +1,53 @@
+// Returns a cardholder's baseline behaviour: which billing regions, channels,
+// product codes, email domains and devices they normally use, and their typical
+// amounts. Every "does not fit the cardholder's history" judgement (patterns 2,
+// 4 and 5) is measured against this (INVESTIGATING state).
+
+CREATE QUERY getAccountProfile(VERTEX<Customer> cust) FOR GRAPH FraudGraph {
+
+  SetAccum<STRING> @@cards;
+  SetAccum<STRING> @@regions;
+  SetAccum<STRING> @@channels;
+  SetAccum<STRING> @@product_codes;
+  SetAccum<STRING> @@email_domains;
+  SetAccum<STRING> @@devices;
+  SumAccum<INT> @@n_txns;
+  SumAccum<DOUBLE> @@total_amount;
+  MaxAccum<DOUBLE> @@max_amount;
+  MinAccum<DOUBLE> @@min_amount;
+
+  seed = {cust};
+
+  acct = SELECT a FROM seed:a;
+
+  cards = SELECT c
+          FROM seed:a -(OWNS:e)-> PaymentCard:c
+          ACCUM @@cards += c.card_id;
+
+  txns = SELECT t
+         FROM cards:c -(MADE:e)-> Transaction:t
+         ACCUM
+           @@n_txns += 1,
+           @@total_amount += t.amount,
+           @@max_amount += t.amount,
+           @@min_amount += t.amount,
+           @@channels += t.channel,
+           @@product_codes += t.product_cd,
+           @@regions += t.addr1,
+           @@email_domains += t.p_emaildomain;
+
+  devices = SELECT d
+            FROM txns:t -(USED_DEVICE:e)-> DeviceProfile:d
+            ACCUM @@devices += d.device_profile;
+
+  PRINT acct;
+  PRINT @@cards AS cards;
+  PRINT @@n_txns AS n_transactions;
+  PRINT @@total_amount AS total_amount;
+  PRINT @@min_amount AS min_amount, @@max_amount AS max_amount;
+  PRINT @@regions AS billing_regions_used;
+  PRINT @@channels AS channels_used;
+  PRINT @@product_codes AS product_codes_used;
+  PRINT @@email_domains AS email_domains_used;
+  PRINT @@devices AS device_profiles_used;
+}

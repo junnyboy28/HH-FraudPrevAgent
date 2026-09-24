@@ -1,0 +1,222 @@
+{
+  "case_id": "HHG-004",
+  "case": {
+    "status": "closed_fraud",
+    "verdict": "fraud",
+    "fraud_probability": 0.77,
+    "pattern": "card_not_present_new_device",
+    "pattern_description": "",
+    "affected_txn_ids": [
+      "3580804",
+      "3583227",
+      "3583499",
+      "3583503",
+      "3584017",
+      "3585446",
+      "3585726",
+      "3587858"
+    ],
+    "first_suspicious_txn_id": "3580804",
+    "connected_card_ids": [
+      "C00294-K2",
+      "C13447-K1",
+      "C05381-K2",
+      "C05307-K2",
+      "C06940-K1",
+      "C11847-K2",
+      "C04597-K2",
+      "C04597-K1",
+      "C06630-K2",
+      "C11923-K2",
+      "C01109-K2",
+      "C06744-K2",
+      "C06663-K2",
+      "C09657-K2",
+      "C05031-K2",
+      "C08962-K2",
+      "C02170-K1",
+      "C01002-K1",
+      "C11444-K1",
+      "C07562-K2"
+    ],
+    "connected_device_profiles": [],
+    "exposure_usd": 384.43,
+    "evidence": [
+      {
+        "claim": "The flagged transaction is $128.33 online on 2016-12-29 01:53:54, product code C, billing region unrecorded, with the bank's model score at 0.34. The score is an input and not a verdict.",
+        "source": "graph",
+        "ref": "query:getEntityNeighborhood(txn_id=3583227)",
+        "entity_ids": [
+          "3583227",
+          "C08106-K1",
+          "C08106"
+        ]
+      },
+      {
+        "claim": "The cardholder has 216 transactions between 2016-07-06 23:51:38 and 2016-12-30 23:24:57, across 4 billing regions and online channels, with a median amount of $26.62.",
+        "source": "graph",
+        "ref": "query:getAccountProfile(account_id=C08106)",
+        "entity_ids": [
+          "C08106",
+          "C08106-K1"
+        ]
+      },
+      {
+        "claim": "$128.33 is more than four times this cardholder's median transaction of $26.62 across 216 transactions",
+        "ref": "query:getAccountProfile(account_id=C08106)",
+        "entityIds": [
+          "3583227"
+        ],
+        "source": "graph",
+        "entity_ids": [
+          "3583227"
+        ]
+      },
+      {
+        "claim": "the identity record marks the device \" |  | firefox 47.0 |\" as New for this account",
+        "ref": "query:getEntityNeighborhood(txn_id=3583227)",
+        "entityIds": [
+          "3583227",
+          " |  | firefox 47.0 |"
+        ],
+        "source": "graph",
+        "entity_ids": [
+          "3583227",
+          " |  | firefox 47.0 |"
+        ]
+      },
+      {
+        "claim": "This account has 3 prior confirmed-fraud case(s) of its own: CC-1736 (card_not_present_fraud), CC-2121 (card_not_present_fraud), CC-3778 (card_not_present_fraud).",
+        "source": "graph",
+        "ref": "query:findLinkedFraudHistory(account_id=C08106)",
+        "entity_ids": [
+          "CC-1736",
+          "CC-2121",
+          "CC-3778"
+        ]
+      },
+      {
+        "claim": "Case memory returned 8 structurally similar closed cases, of which 8 were confirmed fraud and 0 were cleared as false alarms. Retrieved by shared_device and same_pattern.",
+        "source": "graph",
+        "ref": "query:findSimilarClosedCases(account_id=C08106)",
+        "entity_ids": [
+          "CC-0031",
+          "CC-0073",
+          "CC-0223",
+          "CC-0307",
+          "CC-0334",
+          "CC-0365",
+          "CC-0528",
+          "CC-0541"
+        ]
+      },
+      {
+        "claim": "The card carries 216 transactions in total, which is the baseline the pattern checks ran against.",
+        "source": "graph",
+        "ref": "query:getCardTimeline(card_id=C08106-K1)",
+        "entity_ids": [
+          "C08106-K1"
+        ]
+      }
+    ],
+    "similar_prior_cases": [
+      "CC-0031",
+      "CC-0073",
+      "CC-0223",
+      "CC-0307",
+      "CC-0334",
+      "CC-0365",
+      "CC-0528",
+      "CC-0541"
+    ],
+    "summary": "The cardholder disputed a $128.33 online transaction on 2016-12-29 on card C08106-K1. The evidence fits card not present new device: $128.33 is more than four times this cardholder's median transaction of $26.62 across 216 transactions. the identity record marks the device \" |  | firefox 47.0 |\" as New for this account. Case memory returned 8 similar closed cases (8 confirmed fraud, 0 cleared), including CC-0031, CC-0073, CC-0223. Assessed fraud probability 0.77, verdict fraud, exposure $384.43. Recommended: CREATE_CASE (auto), MONITOR_CONNECTED_CARDS (auto), FILE_REPORT (L2), BLOCK_CARD (L1).",
+    "written_to_graph": true,
+    "graph_case_id": "CASE-2016-004"
+  },
+  "evidence_requests": [],
+  "next_best_actions": {
+    "initial": [
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "R6: shared origin identified: a device profile shared with account C00294"
+      },
+      {
+        "action": "MONITOR_CONNECTED_CARDS",
+        "route": "auto",
+        "reason": "R6: cards sharing that origin placed under monitoring"
+      },
+      {
+        "action": "FILE_REPORT",
+        "route": "L2",
+        "reason": "R6: coordinated activity from a device profile shared with account C00294"
+      },
+      {
+        "action": "BLOCK_CARD",
+        "route": "L1",
+        "reason": "R2: fraud strongly suspected at probability 0.77 on corroborated pattern evidence, with exposure of $384.43"
+      }
+    ],
+    "final": [
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "R6: shared origin identified: a device profile shared with account C00294"
+      },
+      {
+        "action": "MONITOR_CONNECTED_CARDS",
+        "route": "auto",
+        "reason": "R6: cards sharing that origin placed under monitoring"
+      },
+      {
+        "action": "FILE_REPORT",
+        "route": "L2",
+        "reason": "R6: coordinated activity from a device profile shared with account C00294"
+      },
+      {
+        "action": "BLOCK_CARD",
+        "route": "L1",
+        "reason": "R2: fraud strongly suspected at probability 0.77 on corroborated pattern evidence, with exposure of $384.43"
+      }
+    ],
+    "what_changed": "nothing"
+  },
+  "sar": {
+    "file": true,
+    "reason": "R6: activity connects to a device profile shared with account C00294",
+    "narrative": "Customer C08106, holder of card C08106-K1, is the subject of this report. Between 2016-12-28 02:21:09 and 2016-12-30 23:24:57, 8 transactions totalling $384.43 were identified as part of a single suspicious episode on that card. The activity was card-not-present (online), from device profile \" |  | firefox 47.0 |\". The pattern identified is card not present new device. $128.33 is more than four times this cardholder's median transaction of $26.62 across 216 transactions. The identity record marks the device \" |  | firefox 47.0 |\" as New for this account. The bank's closed-case history contains structurally similar confirmed fraud: CC-0031 (card_not_present_new_device, $20.36), CC-0073 (card_not_present_new_device, $60.78), CC-0223 (card_not_present_new_device, $160.30). This activity is reported because the assessed fraud probability is 0.77 and it connects to a device profile shared with account C00294. Total suspicious amount: $384.43. The bank's detection model scored the flagged transaction at 0.34, which was treated as a reason to investigate rather than as a determination.",
+    "subjects": [
+      "C08106",
+      "C08106-K1",
+      "C00294-K2",
+      "C13447-K1",
+      "C05381-K2",
+      "C05307-K2",
+      "C06940-K1",
+      "C11847-K2",
+      "C04597-K2",
+      "C04597-K1",
+      "C06630-K2",
+      "C11923-K2",
+      "C01109-K2",
+      "C06744-K2",
+      "C06663-K2",
+      "C09657-K2",
+      "C05031-K2",
+      "C08962-K2",
+      "C02170-K1",
+      "C01002-K1",
+      "C11444-K1",
+      "C07562-K2"
+    ],
+    "total_amount_usd": 384.43,
+    "activity_dates": [
+      "2016-12-28",
+      "2016-12-30"
+    ]
+  },
+  "stop_reason": "Further evidence-gathering would not change the recommended action: the available signals are exhausted and the case is recorded at probability 0.77.",
+  "tool_calls": 7,
+  "tokens": 0,
+  "latency_s": 0
+}

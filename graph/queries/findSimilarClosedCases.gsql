@@ -1,0 +1,75 @@
+// FraudCase-memory retrieval by structural similarity: closed cases that share a
+// device profile, a billing region or the identified pattern with the case being
+// investigated, scored by how many of those they share. Feeds
+// `similar_prior_cases` in the answer file (INVESTIGATING state).
+//
+// This is the graph half of case memory. The vector half (narrative similarity
+// over FraudCase embeddings) runs alongside it and the two are deduplicated in
+// src/memory/. Both closed-history and agent-written cases are FraudCase vertices,
+// so the agent's own cases become retrievable memory automatically.
+
+CREATE QUERY findSimilarClosedCases(
+  VERTEX<Customer> cust,
+  STRING pattern = "",
+  STRING region = "",
+  INT top_k = 10
+) FOR GRAPH FraudGraph {
+
+  TYPEDEF TUPLE <
+    STRING case_id,
+    STRING outcome,
+    STRING pattern,
+    DOUBLE exposure_usd,
+    STRING opened_at,
+    STRING actions_taken,
+    STRING report_filed,
+    INT score,
+    STRING basis
+  > SimilarRow;
+
+  SumAccum<INT> @score;
+  SetAccum<STRING> @basis;
+  ListAccum<SimilarRow> @@results;
+
+  seed = {cust};
+
+  // 1. Cases on accounts that share a device profile with this one.
+  myDevices = SELECT d FROM seed:a -(SHARES_DEVICE:e)-> DeviceProfile:d;
+  neighbours = SELECT other
+               FROM myDevices:d -(SHARED_BY:e)-> Customer:other
+               WHERE other != cust;
+
+  byDevice = SELECT k
+             FROM neighbours:a -(INVESTIGATED_BY:e)-> FraudCase:k
+             WHERE k.source == "closed_history"
+             ACCUM k.@score += 2, k.@basis += "shared_device";
+
+  // 2. Cases matching the same fraud pattern.
+  byPattern = SELECT k
+              FROM FraudCase:k -(MATCHES_PATTERN:e)-> FraudPattern:p
+              WHERE pattern != "" AND p.pattern_id == pattern
+                    AND k.source == "closed_history"
+              ACCUM k.@score += 1, k.@basis += "same_pattern";
+
+  // 3. Cases whose transactions were billed in the same region.
+  byRegion = SELECT k
+             FROM FraudCase:k -(INVOLVES:e)-> Transaction:t
+             WHERE region != "" AND t.addr1 == region
+                   AND k.source == "closed_history"
+             ACCUM k.@score += 1, k.@basis += "same_region";
+
+  candidates = byDevice UNION byPattern UNION byRegion;
+
+  ranked = SELECT k
+           FROM candidates:k
+           WHERE k.@score > 0
+           ACCUM @@results += SimilarRow(k.case_id, k.outcome, k.pattern,
+                                         k.exposure_usd, to_string(k.opened_at),
+                                         k.actions_taken, k.report_filed,
+                                         k.@score, k.@basis.get(0))
+           ORDER BY k.@score DESC
+           LIMIT top_k;
+
+  PRINT ranked;
+  PRINT @@results AS similar_cases;
+}

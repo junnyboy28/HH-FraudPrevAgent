@@ -1,0 +1,52 @@
+// Does this account touch any prior CONFIRMED-FRAUD closed case, either
+// directly (a case on its own cards) or indirectly (a case on another account
+// that shares a device profile with it)? The indirect hop is what turns an
+// ambiguous alert into evidence (INVESTIGATING state).
+//
+// The 5,565 closed cases are loaded as FraudCase vertices with
+// source = "closed_history" and outcome confirmed_fraud or cleared.
+
+CREATE QUERY findLinkedFraudHistory(VERTEX<Customer> cust) FOR GRAPH FraudGraph {
+
+  TYPEDEF TUPLE <
+    STRING case_id,
+    STRING account_id,
+    STRING card_id,
+    STRING outcome,
+    STRING pattern,
+    DOUBLE exposure_usd,
+    STRING opened_at,
+    STRING link
+  > CaseRow;
+
+  ListAccum<CaseRow> @@direct;
+  ListAccum<CaseRow> @@via_device;
+
+  seed = {cust};
+
+  // Direct: a closed case investigating this account.
+  directCases = SELECT k
+                FROM seed:a -(INVESTIGATED_BY:e)-> FraudCase:k
+                WHERE k.outcome == "confirmed_fraud"
+                ACCUM @@direct += CaseRow(k.case_id, k.account_id, k.card_id,
+                                          k.outcome, k.pattern, k.exposure_usd,
+                                          to_string(k.opened_at), "direct");
+
+  // Indirect: accounts sharing a device with this one, and their fraud cases.
+  myDevices = SELECT d FROM seed:a -(SHARES_DEVICE:e)-> DeviceProfile:d;
+
+  neighbours = SELECT other
+               FROM myDevices:d -(SHARED_BY:e)-> Customer:other
+               WHERE other != cust;
+
+  deviceCases = SELECT k
+                FROM neighbours:a -(INVESTIGATED_BY:e)-> FraudCase:k
+                WHERE k.outcome == "confirmed_fraud"
+                ACCUM @@via_device += CaseRow(k.case_id, k.account_id, k.card_id,
+                                              k.outcome, k.pattern, k.exposure_usd,
+                                              to_string(k.opened_at), "shared_device");
+
+  PRINT @@direct AS direct_fraud_cases;
+  PRINT @@via_device AS fraud_cases_via_shared_device;
+  PRINT @@direct.size() AS n_direct, @@via_device.size() AS n_via_device;
+}

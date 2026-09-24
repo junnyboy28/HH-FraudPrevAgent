@@ -1,0 +1,174 @@
+{
+  "case_id": "HHG-006",
+  "case": {
+    "status": "closed_fraud",
+    "verdict": "fraud",
+    "fraud_probability": 0.85,
+    "pattern": "card_not_present_new_device",
+    "pattern_description": "",
+    "affected_txn_ids": [
+      "3476602",
+      "3476633",
+      "3476665",
+      "3476682"
+    ],
+    "first_suspicious_txn_id": "3476602",
+    "connected_card_ids": [],
+    "connected_device_profiles": [],
+    "exposure_usd": 1906.07,
+    "evidence": [
+      {
+        "claim": "The flagged transaction is $482.12 online on 2016-11-21 20:30:00, product code C, billing region 264.0, with the bank's model score at 0.25. The score is an input and not a verdict.",
+        "source": "graph",
+        "ref": "query:getEntityNeighborhood(txn_id=3476682)",
+        "entity_ids": [
+          "3476682",
+          "C07297-K1",
+          "C07297"
+        ]
+      },
+      {
+        "claim": "The cardholder has 261 transactions between 2016-07-05 16:16:59 and 2016-12-31 13:14:13, across 37 billing regions and in_person and online channels, with a median amount of $58.98.",
+        "source": "graph",
+        "ref": "query:getAccountProfile(account_id=C07297)",
+        "entity_ids": [
+          "C07297",
+          "C07297-K1"
+        ]
+      },
+      {
+        "claim": "$482.12 is more than four times this cardholder's median transaction of $58.98 across 261 transactions",
+        "ref": "query:getAccountProfile(account_id=C07297)",
+        "entityIds": [
+          "3476682"
+        ],
+        "source": "graph",
+        "entity_ids": [
+          "3476682"
+        ]
+      },
+      {
+        "claim": "4 online transactions on this card within 48 hours, totalling $1906.07",
+        "ref": "query:getCardTimeline(card_id=C07297-K1)",
+        "entityIds": [
+          "3476602",
+          "3476633",
+          "3476665",
+          "3476682"
+        ],
+        "source": "graph",
+        "entity_ids": [
+          "3476602",
+          "3476633",
+          "3476665",
+          "3476682"
+        ]
+      },
+      {
+        "claim": "the identity record marks the device \"Trident/7.0 | Windows 7 | ie 11.0 for desktop | 1920x1080\" as New for this account",
+        "ref": "query:getEntityNeighborhood(txn_id=3476682)",
+        "entityIds": [
+          "3476682",
+          "Trident/7.0 | Windows 7 | ie 11.0 for desktop | 1920x1080"
+        ],
+        "source": "graph",
+        "entity_ids": [
+          "3476682",
+          "Trident/7.0 | Windows 7 | ie 11.0 for desktop | 1920x1080"
+        ]
+      },
+      {
+        "claim": "Case memory returned 8 structurally similar closed cases, of which 8 were confirmed fraud and 0 were cleared as false alarms. Retrieved by same_pattern and same_region.",
+        "source": "graph",
+        "ref": "query:findSimilarClosedCases(account_id=C07297)",
+        "entity_ids": [
+          "CC-0059",
+          "CC-0249",
+          "CC-0477",
+          "CC-0519",
+          "CC-0615",
+          "CC-0633",
+          "CC-0710",
+          "CC-0878"
+        ]
+      },
+      {
+        "claim": "The card carries 261 transactions in total, which is the baseline the pattern checks ran against.",
+        "source": "graph",
+        "ref": "query:getCardTimeline(card_id=C07297-K1)",
+        "entity_ids": [
+          "C07297-K1"
+        ]
+      }
+    ],
+    "similar_prior_cases": [
+      "CC-0059",
+      "CC-0249",
+      "CC-0477",
+      "CC-0519",
+      "CC-0615",
+      "CC-0633",
+      "CC-0710",
+      "CC-0878"
+    ],
+    "summary": "The cardholder disputed a $482.12 online transaction on 2016-11-21 on card C07297-K1. The evidence fits card not present new device: $482.12 is more than four times this cardholder's median transaction of $58.98 across 261 transactions. 4 online transactions on this card within 48 hours, totalling $1906.07; the identity record marks the device \"Trident/7.0 | Windows 7 | ie 11.0 for desktop | 1920x1080\" as New for this account. Case memory returned 8 similar closed cases (8 confirmed fraud, 0 cleared), including CC-0059, CC-0249, CC-0477. Assessed fraud probability 0.85, verdict fraud, exposure $1906.07. Recommended: BLOCK_CARD (L1), CREATE_CASE (auto), FILE_REPORT (L2).",
+    "written_to_graph": true,
+    "graph_case_id": "CASE-2016-006"
+  },
+  "evidence_requests": [],
+  "next_best_actions": {
+    "initial": [
+      {
+        "action": "BLOCK_CARD",
+        "route": "L1",
+        "reason": "R2: fraud strongly suspected at probability 0.85 on corroborated pattern evidence, with exposure of $1906.07"
+      },
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "R1: case opened per policy section 3a"
+      },
+      {
+        "action": "FILE_REPORT",
+        "route": "L2",
+        "reason": "R2: confirmed or strongly suspected fraud with exposure of $1906.07, above the $1,000 threshold"
+      }
+    ],
+    "final": [
+      {
+        "action": "BLOCK_CARD",
+        "route": "L1",
+        "reason": "R2: fraud strongly suspected at probability 0.85 on corroborated pattern evidence, with exposure of $1906.07"
+      },
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "R1: case opened per policy section 3a"
+      },
+      {
+        "action": "FILE_REPORT",
+        "route": "L2",
+        "reason": "R2: confirmed or strongly suspected fraud with exposure of $1906.07, above the $1,000 threshold"
+      }
+    ],
+    "what_changed": "nothing"
+  },
+  "sar": {
+    "file": true,
+    "reason": "R2: confirmed or strongly suspected fraud with exposure of $1906.07, above the $1,000 threshold",
+    "narrative": "Customer C07297, holder of card C07297-K1, is the subject of this report. Between 2016-11-21 20:00:00 and 2016-11-21 20:30:00, 4 transactions totalling $1906.07 were identified as part of a single suspicious episode on that card. The activity was card-not-present (online), billed in region 264.0 (country code 87.0), from device profile \"Trident/7.0 | Windows 7 | ie 11.0 for desktop | 1920x1080\". The pattern identified is card not present new device. $482.12 is more than four times this cardholder's median transaction of $58.98 across 261 transactions. 4 online transactions on this card within 48 hours, totalling $1906.07. The identity record marks the device \"Trident/7.0 | Windows 7 | ie 11.0 for desktop | 1920x1080\" as New for this account. The bank's closed-case history contains structurally similar confirmed fraud: CC-0059 (card_not_present_new_device, $185.01), CC-0249 (card_not_present_new_device, $74.92), CC-0477 (card_not_present_new_device, $100.04). This activity is reported because the assessed fraud probability is 0.85 and the exposure of $1906.07 meets the filing threshold. Total suspicious amount: $1906.07. The bank's detection model scored the flagged transaction at 0.25, which was treated as a reason to investigate rather than as a determination.",
+    "subjects": [
+      "C07297",
+      "C07297-K1"
+    ],
+    "total_amount_usd": 1906.07,
+    "activity_dates": [
+      "2016-11-21",
+      "2016-11-21"
+    ]
+  },
+  "stop_reason": "Fraud probability 0.85 is at or above 0.85 with 4 independent pieces of evidence, which policy section 6 treats as sufficient to act.",
+  "tool_calls": 7,
+  "tokens": 0,
+  "latency_s": 0
+}

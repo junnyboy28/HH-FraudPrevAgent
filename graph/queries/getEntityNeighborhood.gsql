@@ -1,0 +1,41 @@
+// Pulls the local subgraph around a flagged transaction: the transaction, the
+// card that made it, the cardholder, the cardholder's other cards, the device
+// profile, the billing region, the email domain, and any closed case that
+// already involves that transaction (architecture section 3.1 query 1,
+// INVESTIGATING state).
+//
+// This is the first call of every investigation. It answers "what am I even
+// looking at" before any pattern query runs.
+
+CREATE QUERY getEntityNeighborhood(VERTEX<Transaction> flagged) FOR GRAPH FraudGraph {
+
+  seed = {flagged};
+
+  txn = SELECT t FROM seed:t;
+
+  card = SELECT c FROM seed:t -(MADE_BY:e)-> PaymentCard:c;
+
+  account = SELECT a FROM card:c -(OWNED_BY:e)-> Customer:a;
+
+  siblingCards = SELECT c2
+                 FROM account:a -(OWNS:e)-> PaymentCard:c2;
+
+  device = SELECT d FROM seed:t -(USED_DEVICE:e)-> DeviceProfile:d;
+
+  region = SELECT r FROM seed:t -(BILLED_IN:e)-> BillingRegion:r;
+
+  emailDomain = SELECT m FROM seed:t -(PURCHASER_EMAIL:e)-> EmailDomain:m;
+
+  // Accounts reached through the same device profile, one hop out.
+  linkedAccounts = SELECT other
+                   FROM device:d -(SHARED_BY:e)-> Customer:other
+                   ;
+
+  // Any closed case that already involves this exact transaction.
+  existingCases = SELECT k FROM seed:t -(INVOLVED_IN:e)-> FraudCase:k;
+
+  PRINT txn, card, account, siblingCards;
+  PRINT device, region, emailDomain;
+  PRINT linkedAccounts;
+  PRINT existingCases;
+}
