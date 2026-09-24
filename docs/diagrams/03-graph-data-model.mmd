@@ -1,0 +1,47 @@
+erDiagram
+    Customer ||--o{ PaymentCard : OWNS
+    PaymentCard ||--o{ Transaction : MADE
+    Transaction }o--|| DeviceProfile : USED_DEVICE
+    Transaction }o--|| BillingRegion : BILLED_IN
+    Transaction }o--|| EmailDomain : PURCHASER_EMAIL
+    Transaction ||--o| Transaction : NEXT_TXN
+    DeviceProfile ||--o{ Customer : SHARED_BY
+    FraudCase ||--o{ Transaction : INVOLVES
+    FraudCase }o--|| PaymentCard : ON_CARD
+    FraudCase }o--|| Customer : INVESTIGATES
+    FraudCase }o--|| FraudPattern : MATCHES_PATTERN
+    FraudCase ||--o{ FraudCase : SIMILAR_TO
+    FraudCase }o--o{ PolicyDoc : CITES_POLICY
+
+    Customer {
+        string account_id PK
+        int n_cards
+        int n_transactions
+    }
+    PaymentCard {
+        string card_id PK
+        string card_type
+        string network
+    }
+    Transaction {
+        string txn_id PK
+        double amount
+        string channel
+        double risk_score
+        datetime ts
+    }
+    DeviceProfile {
+        string device_profile PK
+        int n_cards
+    }
+    FraudCase {
+        string case_id PK
+        string source
+        string verdict
+        double exposure_usd
+    }
+    PolicyDoc {
+        string chunk_id PK
+        list embedding
+        string text
+    }

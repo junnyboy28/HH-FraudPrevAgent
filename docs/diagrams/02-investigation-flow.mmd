@@ -1,0 +1,30 @@
+flowchart TD
+    T["TRIGGER<br/>risk score · customer report · analyst request"]
+    INV["INVESTIGATING<br/>neighbourhood · timeline · profile<br/>shared devices · linked fraud · similar cases"]
+    GATH["EVIDENCE_GATHERED<br/>pattern detection + GraphRAG policy retrieval"]
+    ASSESS{"ASSESSING<br/>fraud probability<br/>verdict · exposure"}
+    MORE["NEEDS_MORE_EVIDENCE<br/>ask the customer<br/>simulate the reply from the evidence<br/>record the assumption"]
+    ACT["ACTION_SELECTED<br/>policy engine picks actions"]
+    GATE{"Permission gate<br/>resolve the route"}
+    AUTO["auto<br/>agent executes"]
+    HUMAN["L1 or L2<br/>queued, awaiting a human"]
+    EXP["EXPLAINED<br/>Claude writes summary + SAR narrative"]
+    MEM["MEMORY_UPDATED<br/>FraudCase vertex written to the graph"]
+    DONE["cases/&lt;case_id&gt;.json"]
+
+    T --> INV --> GATH --> ASSESS
+    ASSESS -->|"single weak signal below 0.70<br/>R1 forbids blocking"| MORE
+    MORE -->|re-assess| GATH
+    ASSESS -->|"enough evidence<br/>policy section 6"| ACT
+    ACT --> GATE
+    GATE -->|"BLOCK_CARD at or below $2,500"| HUMAN
+    GATE -->|"BLOCK_CARD above $2,500"| HUMAN
+    GATE --> AUTO
+    AUTO --> EXP
+    HUMAN --> EXP
+    EXP --> MEM --> DONE
+
+    style ASSESS fill:#3d3320,stroke:#9e8b4a,color:#fff
+    style GATE fill:#3d2020,stroke:#9e4a4a,color:#fff
+    style MORE fill:#20303d,stroke:#4a7a9e,color:#fff
+    style MEM fill:#0d2b45,stroke:#3d6b9e,color:#fff

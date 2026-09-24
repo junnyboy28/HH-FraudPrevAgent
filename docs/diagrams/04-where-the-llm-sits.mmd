@@ -1,0 +1,25 @@
+flowchart LR
+    subgraph Deterministic["Deterministic code, auditable"]
+        D1["pattern detection"]
+        D2["fraud probability"]
+        D3["action selection<br/>R1..R10"]
+        D4["approval routing<br/>auto / L1 / L2"]
+        D5["stopping rule"]
+    end
+
+    subgraph Model["Claude, prose only"]
+        L1["case summary"]
+        L2["SAR narrative"]
+    end
+
+    EV["Evidence from the graph"] --> Deterministic
+    Deterministic --> Model
+    Model --> OUT["answer file"]
+    Deterministic --> OUT
+
+    NOTE["The model cannot invent an action,<br/>downgrade an L2 to auto,<br/>or skip the gate"]
+    Model -.-> NOTE
+
+    style Deterministic fill:#1f3320,stroke:#5a9e5a,color:#fff
+    style Model fill:#3d2b45,stroke:#9e6bbe,color:#fff
+    style NOTE fill:#332020,stroke:#9e5a5a,color:#fff
