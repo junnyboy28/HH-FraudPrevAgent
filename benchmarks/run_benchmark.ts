@@ -11,6 +11,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { CaseOrchestrator, type AnswerFile } from '../src/orchestrator/case-orchestrator.js';
+import { ClaudeNarrator } from '../src/llm/claude-narrator.js';
 import { TemplateNarrator } from '../src/llm/template-narrator.js';
 import { LocalEvidenceSource } from '../src/tools/local-evidence-source.js';
 import { TigerGraphCaseWriter } from '../src/memory/tigergraph-case-writer.js';
@@ -24,7 +25,16 @@ async function main(): Promise<void> {
   mkdirSync(OUT_DIR, { recursive: true });
 
   const evidence = new LocalEvidenceSource();
-  const narrator = new TemplateNarrator();
+  // Claude writes the prose when a key is configured; the deterministic
+  // narrator is the fallback so a missing key or a failed call can never block
+  // the deliverable. Responses are cached to disk, so re-runs are free.
+  const useLlm = !process.argv.includes('--no-llm') && ClaudeNarrator.isConfigured();
+  const narrator = useLlm ? new ClaudeNarrator() : new TemplateNarrator();
+  console.log(
+    narrator instanceof ClaudeNarrator
+      ? `narrator: Claude (${narrator.stats.model}), responses cached in .llm-cache/ so re-runs are free`
+      : 'narrator: deterministic templates (no ANTHROPIC_API_KEY, or --no-llm)',
+  );
   const writer = !skipGraph && TigerGraphCaseWriter.isConfigured() ? new TigerGraphCaseWriter() : null;
   if (writer === null) {
     console.log('note: no graph writer (either --no-graph, or .env has no TigerGraph host/secret)');
@@ -66,6 +76,16 @@ async function main(): Promise<void> {
   console.log(`cards blocked: ${blocks}/${answers.length}   SARs filed: ${sars}   escalated: ${escalated}`);
   console.log(`recommendation changed after evidence: ${changed}/${answers.length}`);
   console.log(`total tool calls: ${answers.reduce((s, a) => s + a.tool_calls, 0)}`);
+
+  if (narrator instanceof ClaudeNarrator) {
+    const st = narrator.stats;
+    // Haiku 4.5 is $1 per MTok in, $5 per MTok out.
+    const cost = (st.inputTokens / 1e6) * 1 + (st.outputTokens / 1e6) * 5;
+    console.log(
+      `LLM: ${st.calls} calls, ${st.cacheHits} cached, ${st.failures} failed, ` +
+        `${st.inputTokens} in / ${st.outputTokens} out tokens, about $${cost.toFixed(4)} spent this run`,
+    );
+  }
   console.log(`\nwrote ${answers.length} answer files to cases/`);
 }
 

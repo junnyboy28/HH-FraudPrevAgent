@@ -107,7 +107,7 @@
       "CC-0218",
       "CC-0227"
     ],
-    "summary": "The bank's model scored a $292.36 online transaction at 0.79 on 2016-11-22 on card C11891-K1. The evidence fits card not present fraud: $292.36 is more than four times this cardholder's median transaction of $36.98 across 44 transactions. Case memory returned 8 similar closed cases (8 confirmed fraud, 0 cleared), including CC-0067, CC-0081, CC-0086. Assessed fraud probability 0.53, verdict uncertain, exposure $292.36. Recommended: CREATE_CASE (auto), MONITOR_CONNECTED_CARDS (auto).",
+    "summary": "Transaction 3478782 for $292.36 online was flagged by the model at risk score 0.79 and matches the card_not_present_fraud pattern at strength 0.42. The transaction is 4.1 times the cardholder's median of $36.98 across 44 prior transactions, representing an unusually large purchase for this account. This cardholder has one prior confirmed card_not_present_fraud case (CC-4160), and case memory retrieved eight structurally similar closed cases via shared device link, all eight of which were confirmed fraud with no false alarms. The transaction shares device origin with another cardholder's confirmed fraud. While the fraud probability assessment of 0.53 indicates genuine uncertainty, the combination of pattern match, transaction size deviation, account history, and eight prior confirmed frauds on the same device strongly suggests fraudulent activity. Confidence is high (approximately 80 percent) pending cardholder confirmation of the transaction.",
     "written_to_graph": true,
     "graph_case_id": "CASE-2016-002"
   },

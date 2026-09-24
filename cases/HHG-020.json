@@ -101,7 +101,7 @@
       "CC-0710",
       "CC-0878"
     ],
-    "summary": "The bank's model scored a $125.08 online transaction at 0.52 on 2016-12-03 on card C12265-K2. The evidence fits card not present new device: product code R has never been used on this account before. the identity record marks the device \"Trident/7.0 | Windows 10 | ie 11.0 for desktop | 1920x1080\" as New for this account. Case memory returned 8 similar closed cases (8 confirmed fraud, 0 cleared), including CC-0059, CC-0249, CC-0477. Assessed fraud probability 0.65, verdict uncertain, exposure $125.08. Recommended: CREATE_CASE (auto), MONITOR_CARD (auto).",
+    "summary": "Transaction 3509359 for $125.08 was flagged by the model at score 0.52 for a card-not-present online purchase using a device marked new to the account and a product code never used before on this account. The graph evidence shows the cardholder has an established history of 112 transactions with a median of $94.53, but the current transaction deviates by using an unfamiliar device and product type. Prior closed cases are highly predictive: all 8 structurally similar cases retrieved were confirmed fraud, all matching the same card-not-present-new-device pattern in the same billing region, with exposures ranging from $74.92 to $1500.10. This account also carries a history of 2 prior account takeover cases. Given the pattern strength of 0.57, the perfect confirmation rate in comparable cases, the new device marker, and the product code novelty, fraud probability is assessed at 0.65 with high confidence. The case warrants fraud closure and card monitoring.",
     "written_to_graph": true,
     "graph_case_id": "CASE-2016-020"
   },

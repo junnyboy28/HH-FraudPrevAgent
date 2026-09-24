@@ -20,3 +20,6 @@ graph/load/prepared/
 
 # Runtime approval records, written by the UI permission gate
 config/approvals.json
+
+# LLM response cache: makes re-running the benchmark free
+.llm-cache/
